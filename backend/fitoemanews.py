@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import logging
 from collections import namedtuple
@@ -8,6 +9,7 @@ import time
 import aiomysql
 from lxml import html
 
+from migrator import migrator
 from singletons.config import Config
 from singletons.db import Db
 
@@ -46,7 +48,7 @@ async def scrape_herbs():
 
             try:
                 async with session.get("{}&pageNo={}".format(EMA_URL, page)) as resp:
-                    logging.info("Scraping page {}".format(page))
+                    logging.debug("Scraping page {}".format(page))
                     if resp.status != 200:
                         raise NonOkResponseError()
 
@@ -105,7 +107,7 @@ async def scrape_herbs():
                                 # TODO: Aggiornamento?
                         processed_elements += 1
 
-                    print("Processed {} elements".format(processed_elements))
+                    logging.debug("Processed {} elements".format(processed_elements))
                     page += 1
             except InvalidHerbError as e:
                 logging.warning(e)
@@ -124,7 +126,7 @@ async def scrape_documents():
             name = document_a.text_content().strip()
             url = "http://www.ema.europa.eu/{}".format(document_a.get("href").lstrip("/"))
             language, first_published, last_updated = [x.text.strip() for x in columns[1:]]
-            print(url, name, language, first_published, last_updated)
+            logging.debug(("{} " * 5).format(url, name, language, first_published, last_updated))
             results.append(
                 EmaDocument(name, type_, url, language, first_published, last_updated)
             )
@@ -156,6 +158,8 @@ async def dispose():
 
 def main():
     print("Fitoemanews POC")
+    logging.basicConfig(level=logging.DEBUG)
+
     loop = asyncio.new_event_loop()
     c = Config()
     loop.run_until_complete(
@@ -170,9 +174,14 @@ def main():
             loop=loop,
         )
     )
+
     try:
+        if len(sys.argv) >= 2 and sys.argv[1].lower() == "migrate":
+            loop.run_until_complete(migrator.migrate())
+            return
+
         s = int(input("1: erbe\n2: documenti\n\n> "))
-        loop.run_until_complete([scrape_herbs, scrape_documents][s + 1]())
+        loop.run_until_complete([scrape_herbs, scrape_documents][s - 1]())
     except KeyboardInterrupt:
         logging.info("Interrupted.")
     finally:

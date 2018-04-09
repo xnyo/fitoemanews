@@ -11,6 +11,7 @@ class Db:
     @classmethod
     async def create(cls, *args, **kwargs):
         self = Db()
+        self.config = {**kwargs}
         self._pool = await aiomysql.create_pool(*args, **kwargs)
         return self
 
