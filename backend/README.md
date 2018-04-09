@@ -6,6 +6,7 @@ $ source .pyenv/bin/activate
 (.pyenv)$ cp settings.sample.ini settings.ini
 (.pyenv)$ nano settings.ini
 ...
-(.pyenv)$ mysql -u fitoemanews -p fitoemanews < schema.sql
+(.pyenv)$ python fitoemanews.py migrate
+...
 (.pyenv)$ python fitoemanews.py
 ```
