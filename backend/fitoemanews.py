@@ -165,7 +165,7 @@ def main():
         )
     )
     try:
-        s = int(input("0: erbe\n1: documenti\n\n> "))
+        s = int(input("1: erbe\n2: documenti\n\n> "))
         loop.run_until_complete([scrape_herbs, scrape_documents][s + 1]())
     finally:
         # TODO: Dispose mysql pool (Db().close(); await Db().wait_closed())
