@@ -148,6 +148,12 @@ async def scrape_documents():
                     pass
 
 
+async def dispose():
+    # Chiudi pool mysql
+    Db().close()
+    await Db().wait_closed()
+
+
 def main():
     print("Fitoemanews POC")
     loop = asyncio.new_event_loop()
@@ -167,8 +173,10 @@ def main():
     try:
         s = int(input("1: erbe\n2: documenti\n\n> "))
         loop.run_until_complete([scrape_herbs, scrape_documents][s + 1]())
+    except KeyboardInterrupt:
+        logging.info("Interrupted.")
     finally:
-        # TODO: Dispose mysql pool (Db().close(); await Db().wait_closed())
+        loop.run_until_complete(dispose())
         loop.close()
 
 
