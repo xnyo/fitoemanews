@@ -15,7 +15,11 @@ class Config:
     """
     def __init__(self):
         self._config = {
+            "HTTP_HOST": config("HTTP_HOST", default="127.0.0.1"),
+            "HTTP_PORT": config("HTTP_PORT", default="8000", cast=int),
+
             "DB_HOST": config("DB_HOST"),
+            "DB_PORT": config("DB_PORT", default="3306", cast=int),
             "DB_USERNAME": config("DB_USERNAME"),
             "DB_PASSWORD": config("DB_PASSWORD"),
             "DB_NAME": config("DB_NAME"),

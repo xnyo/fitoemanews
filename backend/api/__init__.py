@@ -10,6 +10,7 @@ from schema import Schema, SchemaError, And, Use
 
 from exceptions import api
 from singletons.config import Config
+from singletons.emanews import EmaNews
 
 
 def readable_exception(exc: Type[Exception], default: str) -> str:
@@ -103,7 +104,7 @@ def errors(f: Callable) -> Callable:
 
             # Se l'api è in debug mode, invia lo stacktrace al client
             # altrimenti mostra un messaggio generico
-            if Config()["DEBUG"]:
+            if EmaNews().debug:
                 msg = readable_exception(traceback.format_exc(), "Unhandled internal server error")
             else:
                 msg = "Internal server error."
