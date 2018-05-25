@@ -5,6 +5,14 @@ from utils.singletons import singleton
 
 @singleton
 class Config:
+    """
+    Singleton file configurazione.
+    È possibile accedere ai valori del file di configurazione con la sintassi di un dict
+    ```
+    >>> print(Config()["DB_NAME"])
+    fitoemanews
+    ```
+    """
     def __init__(self):
         self._config = {
             "DB_HOST": config("DB_HOST"),

@@ -1,5 +1,6 @@
 import importlib
 import logging
+from typing import Union, Sequence, Optional
 
 import os
 import re
@@ -11,27 +12,33 @@ LOGGER = logging.getLogger("migrator")
 
 
 class Migration:
-    def __init__(self, _id, name, _type):
+    def __init__(self, _id: Union[str, int], name: str, _type: Union[str]):
         """
         Una classe che rappresenta una migration
 
-        :param _id: id (`str` o `int`)
+        :param _id: id della migration
+        :type: Union[str, int]
         :param name: nome migration
+        :type name: str
         :param _type: `sql` o `py`
+        :type _type: str
         """
-        self.id = int(_id)
-        self.name = name if name is not None else ""
-        self.type = _type
-        self.file_name = "m{id}{name}.{ext}".format(
+        self.id: int = int(_id)
+        self.name: str = name if name is not None else ""
+        self.type: str = _type.strip().lower()
+        if self.type not in ("sql", "py"):
+            raise ValueError("Migration type must be either 'sql' or 'py'")
+        self.file_name: str = "m{id}{name}.{ext}".format(
             id=self.id, name="_{}".format(self.name) if name is not None else "", ext=self.type
         )
 
 
-async def save_db_version(db_version):
+async def save_db_version(db_version: int):
     """
     Aggiorna db_version nel database
 
     :param db_version: nuova versione database
+    :type db_version: int
     :return:
     """
     async with Db().acquire() as conn:
@@ -40,14 +47,17 @@ async def save_db_version(db_version):
             await conn.commit()
 
 
-def get_migration(_id, migrations):
+def get_migration(_id: int, migrations: Sequence[Migration]) -> Optional[Migration]:
     """
     Ritorna l'oggetto `Migration` con `id` = `_id`
     da una lista contenente oggetti `Migration`
 
     :param _id: id migration
+    :type _id: int
     :param migrations: lista oggetti `Migration`
+    :type migrations: Sequence[Migration]
     :return: `None` o oggetto `Migration`
+    :rtype: Optional[Migration]
     """
     for i in migrations:
         if i.id == _id:

@@ -5,6 +5,9 @@ from utils.singletons import singleton
 
 @singleton
 class Db:
+    """
+    Singleton pool aiomysql
+    """
     def __init__(self):
         self._pool = None
 
