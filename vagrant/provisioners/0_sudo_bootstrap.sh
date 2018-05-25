@@ -31,6 +31,7 @@ packageslist=(
     mariadb-server
     python3.6
     python3.6-dev
+    build-essential
 )
 apt-get install -q -y ${packageslist[@]}
 
@@ -41,5 +42,9 @@ python3 get-pip.py
 
 echo "=> Installing virtualenv"
 pip install virtualenv
+
+echo "=> Installing nodejs"
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -q -y nodejs
 
 echo "@ System bootstrap completed!"
