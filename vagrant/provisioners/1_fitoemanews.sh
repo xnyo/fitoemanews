@@ -23,5 +23,5 @@ mysql -u root -proot -e "DROP DATABASE IF EXISTS fitoemanews; CREATE DATABASE fi
 echo "=> Configuring fitoemanews"
 cp /vagrant/vagrant/configs/fitoemanews.ini /vagrant/backend/settings.ini
 
-echo "=> Running migrations"
-~/.pyenv/bin/python poc.py migrate
+# echo "=> Running migrations"
+# ~/.pyenv/bin/python poc.py migrate
