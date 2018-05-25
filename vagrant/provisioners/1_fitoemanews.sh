@@ -24,4 +24,4 @@ echo "=> Configuring fitoemanews"
 cp /vagrant/vagrant/configs/fitoemanews.ini /vagrant/backend/settings.ini
 
 echo "=> Running migrations"
-~/.pyenv/bin/python fitoemanews.py migrate
+~/.pyenv/bin/python poc.py migrate
