@@ -1,4 +1,7 @@
-aiohttp==3.1.2
+cchardet
+aiodns
+aiohttp==3.2.1
 lxml==4.2.1
 aiomysql==0.0.12
 python-decouple==3.1
+schema==0.6.7
