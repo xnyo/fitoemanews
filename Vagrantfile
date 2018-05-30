@@ -3,7 +3,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/artful64"
-  config.vm.network "private_network", ip: "172.16.10.1"
+  config.vm.network "private_network", ip: "172.16.10.100"
   
   scripts = []
   Dir.glob("vagrant/provisioners/*_*.sh").each do |file_path|
