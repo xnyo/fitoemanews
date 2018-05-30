@@ -4,7 +4,6 @@ import logging
 import aiomysql
 from aiohttp import web
 
-from utils.db import Db
 from utils.singletons import singleton
 
 
@@ -37,7 +36,7 @@ class EmaNews:
         logging.basicConfig(level=logging.DEBUG if self.debug else logging.INFO)
 
         self.app: web.Application = None
-        self.db: Db = None
+        self.db: aiomysql.Pool = None
         self.setup_web_app()
 
     async def connect_db(self):
@@ -76,4 +75,4 @@ class EmaNews:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_db())
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
-        web.run_app(self.app, print=None)
+        web.run_app(self.app, port=self.web_port, print=None)

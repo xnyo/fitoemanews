@@ -1,5 +1,6 @@
 from aiohttp import web
 from aiohttp.web_request import Request
+from schema import Use
 
 import api
 
@@ -9,14 +10,3 @@ async def handle(request: Request):
     return web.json_response({
         "message": "ok"
     })
-
-
-# @api.base
-# @api.args({
-#     "a": Use(int),
-#     "b": Use(int)
-# })
-# async def handle_test(request, data):
-#     return web.json_response({
-#         "res": data["a"] + data["b"]
-#     })

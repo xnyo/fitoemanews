@@ -9,7 +9,6 @@ from multidict import MultiDict
 from schema import Schema, SchemaError, And, Use
 
 from exceptions import api
-from singletons.config import Config
 from singletons.emanews import EmaNews
 
 
@@ -82,8 +81,8 @@ def errors(f: Callable) -> Callable:
             resp = json_error_response(500, readable_exception(e, "Internal server error"))
         except api.ForbiddenError as e:
             resp = json_error_response(403, readable_exception(e, "Access forbidden"))
-        except api.MissingArgumentsError as e:
-            resp = json_error_response(400, readable_exception(e, "Missing some required arguments"))
+        # except api.MissingArgumentsError as e:
+        #     resp = json_error_response(400, readable_exception(e, "Missing some required arguments"))
         except api.InvalidArgumentsError as e:
             resp = json_error_response(400, readable_exception(e, "Some arguments are not valid"))
         except api.ConflictError as e:
@@ -160,7 +159,7 @@ def args(schema_: Union[Schema, dict]) -> Callable:
                     And(*schema_components)
                 )
             else:
-                # Oggetto Schema già fornite
+                # Oggetto Schema già fornito
                 schema = schema_
 
             # Verifica schema
