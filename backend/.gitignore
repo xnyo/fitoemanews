@@ -2,3 +2,4 @@
 .pyenv
 .idea
 settings.ini
+.pytest_cache/
