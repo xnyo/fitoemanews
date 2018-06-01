@@ -1,15 +1,20 @@
+import itertools
+from datetime import datetime
+from typing import List, Generator, Iterable
+
+from aiomysql import SSDictCursor
 from apscheduler.triggers.interval import IntervalTrigger
 
 from singletons.emanews import EmaNews
 
 import logging
-from collections import namedtuple
 
 import aiohttp
 import time
 
 from lxml import html
 
+from utils.ema import EmaDocument
 
 emanews = EmaNews()
 logger = logging.getLogger("scraper")
@@ -18,10 +23,6 @@ logger = logging.getLogger("scraper")
 EMA_URL = "http://www.ema.europa.eu/ema/index.jsp?searchType=Latin+name+of+herbal+substance&curl=pages%2Fmedicines%2F" \
           "landing%2Fherbal_search.jsp&treeNumber=&searchkwByEnter=false&mid=&taxonomyPath=&keyword=Enter+keywords&al" \
           "readyLoaded=true&startLetter=View+all"
-
-# TODO: Spostare
-EmaDocument = namedtuple("EmaDocument", ["name", "type", "url", "language", "first_published", "last_updated"])
-# TODO: EmaHerb = namedtuple("EmaHerb", [...])
 
 
 # TODO: Spostare in exceptions
@@ -44,7 +45,7 @@ async def scrape_herbs():
     async with aiohttp.ClientSession() as session:
         # Continua a fare lo scraping se nella pagina attuale ci sono elementi
         while processed_elements > 0 or page == 1:
-            # Reset variabili
+            # Reset variabili pagina
             processed_elements = 0
 
             try:
@@ -62,7 +63,7 @@ async def scrape_herbs():
                         # Il nome latino è un `th` con `a` all'interno
                         latin_name_anchor = table_row.xpath("./th/a")
 
-                        # Se non è presente, non considerare questo elemento
+                        # Se non è presente il nome latino, non considerare questo elemento
                         if not latin_name_anchor:
                             raise InvalidHerbError("No anchor found, element skipped")
 
@@ -85,7 +86,7 @@ async def scrape_herbs():
                         botanic_name, english_name, status = columns_text
 
                         # Controllo validità status
-                        if status not in ["R", "C", "D", "P", "PF", "F"]:
+                        if status not in ("R", "C", "D", "P", "PF", "F"):
                             raise InvalidHerbError("Status is invalid ({}), element skipped".format(status))
 
                         # TODO: Namedtuple
@@ -115,45 +116,122 @@ async def scrape_herbs():
 
 
 async def scrape_documents():
-    def scrape_table(path, type_):
-        results = []
+    def scrape_table(path: str, type_: str) -> Iterable[EmaDocument]:
         for document in tree.xpath(path):
+            # Prendi tutte le colonne (devono essere 4)
             columns = document.xpath("td")
             if len(columns) != 4:
                 raise InvalidDocumentError(
                     "Row has {} elements instead of 3, element skipped".format(len(columns))
                 )
+
+            # Estrai tag `a` contenente nome e URL
             document_a = columns[0].find("a")
+
+            # Estrai nome documento
             name = document_a.text_content().strip()
+
+            # Determina URL documento
             url = "http://www.ema.europa.eu/{}".format(document_a.get("href").lstrip("/"))
+
+            # Estrai altri dati
             language, first_published, last_updated = [x.text.strip() for x in columns[1:]]
-            logger.debug(("{} " * 5).format(url, name, language, first_published, last_updated))
-            results.append(
-                EmaDocument(name, type_, url, language, first_published, last_updated)
-            )
-        return results
+            # logger.debug(("{} " * 5).format(url, name, language, first_published, last_updated))
 
-    # Seleziona tutte le erbe dal db
+            # Ritorna il documento
+            yield EmaDocument(name, type_, url, language, first_published, last_updated)
+
+    # Mantieni aperta una connessione al db
     async with emanews.db.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT * FROM herbs")
-            herbs = await cur.fetchall()
+        async with conn.cursor(SSDictCursor) as unbuffered_cur:
+            # Seleziona tutte le erbe dal db
+            await unbuffered_cur.execute("SELECT * FROM herbs")
 
-    async with aiohttp.ClientSession() as session:
-        for herb in herbs:
-            # Scraping della pagina del sito dell'EMA per ogni erba
-            async with session.get(herb["url"]) as resp:
-                tree = html.fromstring(await resp.text())
-                consultations = scrape_table(".//div[@id='consultation']//table/tbody/tr", "consultation")
-                other_documents = scrape_table(".//div[@id='documents']//table/tbody/tr", "other_document")
-                for document in consultations + other_documents:
-                    # TODO: db
-                    pass
+            # Apri sessione aiohttp
+            async with aiohttp.ClientSession() as session:
+                # Scraping documenti per ogni erba presente nel database
+                # Il recupero delle erbe avviene con un unbuffered cursor
+                for herb in await unbuffered_cur.fetchall():
+                    # Apro un secondo cursore (buffered) da usare per leggere/modificare i documenti
+                    async with conn.cursor() as cur:
+                        # Recupera i documenti attualmente salvati per questa erba
+                        await cur.execute("SELECT * FROM documents WHERE herb_id = %s", (herb["id"],))
+                        sas = await cur.fetchall()
+                        stored_documents = [
+                            {**x, **{"name": x["name"].strip().lower()}} for x in sas
+                        ]
+
+                        # Scraping della pagina del sito dell'EMA di questa erba
+                        async with session.get(herb["url"]) as resp:
+                            # Parsing HTML
+                            tree = html.fromstring(await resp.text())
+
+                            # Elabora ogni documento, sia nella scheda "consultations" che "other"
+                            for document in itertools.chain(
+                                scrape_table(".//div[@id='consultation']//table/tbody/tr", "consultation"),
+                                scrape_table(".//div[@id='documents']//table/tbody/tr", "other")
+                            ):
+                                # Controlla se esiste un documento con lo stesso nome
+                                safe_document_name = document.name.strip().lower()
+                                matching_document = next(
+                                    (x for x in stored_documents if x["name"] == safe_document_name),
+                                    None
+                                )
+
+                                # Se update_herb = True, aggiorna la data di aggiornamento dell'erba
+                                # relativa a questo documento
+                                update_herb = False
+                                if matching_document is None:
+                                    # Nuovo documento
+                                    logging.debug("Adding {}".format(document))
+                                    update_herb = True
+                                    await cur.execute(
+                                        "INSERT INTO documents (herb_id, type, name, language, "
+                                        "first_published, last_updated_ema, url) VALUES "
+                                        "(%s, %s, %s, %s, %s, %s, %s)",
+                                        (
+                                            herb["id"], document.type, document.name, document.language,
+                                            document.first_published, document.last_updated_ema, document.url
+                                        )
+                                    )
+                                elif (
+                                    document.last_updated_ema is not None
+                                    and matching_document["last_updated_ema"] is None
+                                ) or (
+                                    type(document.last_updated_ema) is int and
+                                    type(matching_document["last_updated_ema"]) is int
+                                    and document.last_updated_ema > matching_document["last_updated_ema"]
+                                ):
+                                    # Data aggiornamento presente (precedentemente mancante)
+                                    # o superiore a quella salvata, aggiorna informazioni nel db
+                                    update_herb = True
+                                    logging.debug("Updating {}".format(document))
+                                    await cur.execute(
+                                        "UPDATE documents SET type = %s, name = %s, language = %s,"
+                                        "first_published = %s, last_updated_ema = %s, url = %s "
+                                        "WHERE id = %s LIMIT 1",
+                                        (
+                                            document.type, document.name, document.language,
+                                            document.first_published, document.last_updated_ema, document.url,
+                                            matching_document["id"]
+                                        )
+                                    )
+
+                                if update_herb:
+                                    # Se abbiamo aggiunto/aggiornato un documento di questa erba,
+                                    # modifica anche la data di aggiornamento dell'erba
+                                    await cur.execute("UPDATE herbs SET latest_update = %s WHERE id = %s LIMIT 1",
+                                                      (herb["id"], int(time.time())))
+
+                                # Commit per ogni documento
+                                await conn.commit()
 
 
 @emanews.scheduler.scheduled_job(
     IntervalTrigger(minutes=10)
 )
 async def scrape_everything():
-    await scrape_documents()
     await scrape_herbs()
+    logger.info("Herbs scraping completed")
+    await scrape_documents()
+    logger.info("Documents scraping completed")
