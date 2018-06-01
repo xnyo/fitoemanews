@@ -3,7 +3,9 @@ import logging
 
 import aiomysql
 from aiohttp import web
+from aiomysql import DictCursor
 
+from migrator.migrator import Migrator
 from utils.singletons import singleton
 
 
@@ -50,7 +52,7 @@ class EmaNews:
             host=self.db_host, port=self.db_port,
             user=self.db_username, password=self.db_password,
             db=self.db_database, minsize=self.db_pool_minsize,
-            maxsize=self.db_pool_maxsize
+            maxsize=self.db_pool_maxsize, cursorclass=DictCursor
         )
 
     def setup_web_app(self):
@@ -74,5 +76,7 @@ class EmaNews:
         self.logger.info("Starting fitoemanews...")
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_db())
+        loop.run_until_complete(Migrator(self.db).migrate())
+
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
         web.run_app(self.app, port=self.web_port, print=None)

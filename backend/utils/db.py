@@ -1,12 +1,9 @@
 import aiomysql
 
-from utils.singletons import singleton
 
-
-@singleton
 class Db:
     """
-    Singleton pool aiomysql
+    Wrapper pool aiomysql
     """
     def __init__(self):
         self._pool = None
