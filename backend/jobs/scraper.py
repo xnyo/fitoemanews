@@ -1,17 +1,18 @@
-import sys
-import asyncio
+from apscheduler.triggers.interval import IntervalTrigger
+
+from singletons.emanews import EmaNews
+
 import logging
 from collections import namedtuple
 
 import aiohttp
 import time
 
-import aiomysql
 from lxml import html
 
-from migrator import migrator
-from singletons.config import Config
-from singletons.db import Db
+
+emanews = EmaNews()
+logger = logging.getLogger("scraper")
 
 # TODO: Spostare in costanti
 EMA_URL = "http://www.ema.europa.eu/ema/index.jsp?searchType=Latin+name+of+herbal+substance&curl=pages%2Fmedicines%2F" \
@@ -48,7 +49,7 @@ async def scrape_herbs():
 
             try:
                 async with session.get("{}&pageNo={}".format(EMA_URL, page)) as resp:
-                    logging.debug("Scraping page {}".format(page))
+                    logger.debug("Scraping page {}".format(page))
                     if resp.status != 200:
                         raise NonOkResponseError()
 
@@ -90,7 +91,7 @@ async def scrape_herbs():
                         # TODO: Namedtuple
 
                         # Salvataggio nel db
-                        async with Db().acquire() as conn:
+                        async with emanews.db.acquire() as conn:
                             async with conn.cursor() as cur:
                                 # Controllo se l'erba esiste già nel database
                                 await cur.execute("SELECT id FROM herbs WHERE latin_name = %s LIMIT 1", (latin_name,))
@@ -107,10 +108,10 @@ async def scrape_herbs():
                                 # TODO: Aggiornamento?
                         processed_elements += 1
 
-                    logging.debug("Processed {} elements".format(processed_elements))
+                    logger.debug("Processed {} elements".format(processed_elements))
                     page += 1
             except InvalidHerbError as e:
-                logging.warning(e)
+                logger.warning(e)
 
 
 async def scrape_documents():
@@ -126,14 +127,14 @@ async def scrape_documents():
             name = document_a.text_content().strip()
             url = "http://www.ema.europa.eu/{}".format(document_a.get("href").lstrip("/"))
             language, first_published, last_updated = [x.text.strip() for x in columns[1:]]
-            logging.debug(("{} " * 5).format(url, name, language, first_published, last_updated))
+            logger.debug(("{} " * 5).format(url, name, language, first_published, last_updated))
             results.append(
                 EmaDocument(name, type_, url, language, first_published, last_updated)
             )
         return results
 
     # Seleziona tutte le erbe dal db
-    async with Db().acquire() as conn:
+    async with emanews.db.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute("SELECT * FROM herbs")
             herbs = await cur.fetchall()
@@ -150,44 +151,9 @@ async def scrape_documents():
                     pass
 
 
-async def dispose():
-    # Chiudi pool mysql
-    Db().close()
-    await Db().wait_closed()
-
-
-def main():
-    print("Fitoemanews POC")
-    logging.basicConfig(level=logging.DEBUG)
-
-    loop = asyncio.new_event_loop()
-    c = Config()
-    loop.run_until_complete(
-        Db().create(
-            host=c["DB_HOST"],
-            user=c["DB_USERNAME"],
-            password=c["DB_PASSWORD"],
-            db=c["DB_NAME"],
-            charset="utf8",
-            use_unicode=True,
-            cursorclass=aiomysql.DictCursor,
-            loop=loop,
-        )
-    )
-
-    try:
-        if len(sys.argv) >= 2 and sys.argv[1].lower() == "migrate":
-            loop.run_until_complete(migrator.migrate())
-            return
-
-        s = int(input("1: erbe\n2: documenti\n\n> "))
-        loop.run_until_complete([scrape_herbs, scrape_documents][s - 1]())
-    except KeyboardInterrupt:
-        logging.info("Interrupted.")
-    finally:
-        loop.run_until_complete(dispose())
-        loop.close()
-
-
-if __name__ == "__main__":
-    main()
+@emanews.scheduler.scheduled_job(
+    IntervalTrigger(minutes=10)
+)
+async def scrape_everything():
+    await scrape_documents()
+    await scrape_herbs()

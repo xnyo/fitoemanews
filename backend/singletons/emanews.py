@@ -4,6 +4,7 @@ import logging
 import aiomysql
 from aiohttp import web
 from aiomysql import DictCursor
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from migrator.migrator import Migrator
 from utils.singletons import singleton
@@ -39,6 +40,7 @@ class EmaNews:
 
         self.app: web.Application = None
         self.db: aiomysql.Pool = None
+        self.scheduler: AsyncIOScheduler = AsyncIOScheduler()
         self.setup_web_app()
 
     async def connect_db(self):
@@ -68,7 +70,7 @@ class EmaNews:
             web.get("/api/v1/ping", ping.handle)
         ])
 
-    async def dispose(self, app):
+    async def dispose(self, _):
         """
         Chiude le risorse aperte dal web server.
         Da chiamare prima della chiusura.
@@ -81,6 +83,9 @@ class EmaNews:
         self.db.terminate()
         await self.db.wait_closed()
 
+        self.logger.info("Stopping scheduler...")
+        self.scheduler.shutdown()
+
     def start(self):
         """
         Avvia l'app aiohttp dell'API
@@ -91,6 +96,10 @@ class EmaNews:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_db())
         loop.run_until_complete(Migrator(self.db).migrate())
+
+        from jobs import scraper
+        self.scheduler.start()
+        loop.run_until_complete(scraper.scrape_everything())
 
         self.app.on_cleanup.append(self.dispose)
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
