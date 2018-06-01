@@ -2,6 +2,7 @@
 Eccezioni API
 """
 
+
 class NotFoundError(Exception):
     pass
 

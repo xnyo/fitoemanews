@@ -1,6 +1,5 @@
 import itertools
-from datetime import datetime
-from typing import List, Generator, Iterable
+from typing import Iterable
 
 from aiomysql import SSDictCursor
 from apscheduler.triggers.interval import IntervalTrigger
@@ -25,7 +24,6 @@ EMA_URL = "http://www.ema.europa.eu/ema/index.jsp?searchType=Latin+name+of+herba
           "readyLoaded=true&startLetter=View+all"
 
 
-# TODO: Spostare in exceptions
 class NonOkResponseError(Exception):
     pass
 
@@ -117,9 +115,9 @@ async def scrape_herbs():
 
 async def scrape_documents():
     def scrape_table(path: str, type_: str) -> Iterable[EmaDocument]:
-        for document in tree.xpath(path):
+        for doc in tree.xpath(path):
             # Prendi tutte le colonne (devono essere 4)
-            columns = document.xpath("td")
+            columns = doc.xpath("td")
             if len(columns) != 4:
                 raise InvalidDocumentError(
                     "Row has {} elements instead of 3, element skipped".format(len(columns))

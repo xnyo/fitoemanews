@@ -1,7 +1,7 @@
 import asyncio
 import json
 import traceback
-from typing import Callable, Type, Union
+from typing import Callable, Union
 
 from aiohttp import web
 from aiohttp.web_response import Response
@@ -12,7 +12,7 @@ from exceptions import api
 from singletons.emanews import EmaNews
 
 
-def readable_exception(exc: Type[Exception], default: str) -> str:
+def readable_exception(exc: Exception, default: str) -> str:
     """
     Funzione che ritorna una stringa con il messaggio dell'eccezione `exc`
     o un messaggio di default, contenuto in `default`.

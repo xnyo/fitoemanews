@@ -99,7 +99,6 @@ class EmaNews:
 
         from jobs import scraper
         self.scheduler.start()
-        loop.run_until_complete(scraper.scrape_everything())
 
         self.app.on_cleanup.append(self.dispose)
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))

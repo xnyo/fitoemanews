@@ -6,8 +6,6 @@ import aiomysql
 import os
 import re
 
-from utils.db import Db
-
 
 class Migration:
     def __init__(self, _id: Union[str, int], name: str, _type: Union[str]):
