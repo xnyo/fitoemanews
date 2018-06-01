@@ -16,6 +16,7 @@ fi
 
 echo "=> Installing dependencies"
 ~/.pyenv/bin/pip install -r requirements.txt
+~/.pyenv/bin/pip install -r requirements-dev.txt
 
 echo "=> Creating database"
 mysql -u root -proot -e "DROP DATABASE IF EXISTS fitoemanews; CREATE DATABASE fitoemanews;"
