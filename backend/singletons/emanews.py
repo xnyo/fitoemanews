@@ -67,6 +67,19 @@ class EmaNews:
             web.get("/api/v1/ping", ping.handle)
         ])
 
+    async def dispose(self, app):
+        """
+        Chiude le risorse aperte dal web server.
+        Da chiamare prima della chiusura.
+
+        :return:
+        """
+        self.logger.info("Disposing emanews")
+
+        self.logger.info("Closing db pool...")
+        self.db.terminate()
+        await self.db.wait_closed()
+
     def start(self):
         """
         Avvia l'app aiohttp dell'API
@@ -78,5 +91,9 @@ class EmaNews:
         loop.run_until_complete(self.connect_db())
         loop.run_until_complete(Migrator(self.db).migrate())
 
+        self.app.on_cleanup.append(self.dispose)
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
-        web.run_app(self.app, port=self.web_port, print=None)
+        try:
+            web.run_app(self.app, port=self.web_port, print=None)
+        finally:
+            self.logger.info("Goodbye!")
