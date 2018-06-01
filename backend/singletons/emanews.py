@@ -56,7 +56,7 @@ class EmaNews:
             user=self.db_username, password=self.db_password,
             db=self.db_database, minsize=self.db_pool_minsize,
             maxsize=self.db_pool_maxsize, cursorclass=DictCursor,
-            charset="utf8"
+            charset="utf8", use_unicode=True
         )
 
     def setup_web_app(self):
