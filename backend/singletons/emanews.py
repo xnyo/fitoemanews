@@ -38,6 +38,7 @@ class EmaNews:
 
         logging.basicConfig(level=logging.DEBUG if self.debug else logging.INFO)
 
+        self._initialized = False
         self.app: web.Application = None
         self.db: aiomysql.Pool = None
         self.scheduler: AsyncIOScheduler = AsyncIOScheduler()
@@ -86,20 +87,33 @@ class EmaNews:
         self.logger.info("Stopping scheduler...")
         self.scheduler.shutdown()
 
-    def start(self):
+    def initialize(self):
         """
-        Avvia l'app aiohttp dell'API
+        Inizializza EmaNews:
+        - Crea il pool di connessioni al db
+        - Esegue le migrations
+        - Registra i jobs nello scheduler
 
         :return:
         """
-        self.logger.info("Starting fitoemanews...")
+        self.logger.info("Initializing fitoemanews")
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_db())
         loop.run_until_complete(Migrator(self.db).migrate())
 
         from jobs import scraper
-        self.scheduler.start()
 
+        self._initialized = True
+
+    def start(self):
+        """
+        Avvia lo scheduler e l'app aiohttp dell'API
+
+        :return:
+        """
+        if not self._initialized:
+            self.initialize()
+        self.scheduler.start()
         self.app.on_cleanup.append(self.dispose)
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
         try:

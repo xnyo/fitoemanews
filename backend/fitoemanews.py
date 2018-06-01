@@ -1,3 +1,6 @@
+import asyncio
+import sys
+
 from singletons.config import Config
 from singletons.emanews import EmaNews
 
@@ -15,7 +18,14 @@ def main():
         debug=c["DEBUG"],
         web_host=c["HTTP_HOST"],
         web_port=c["HTTP_PORT"]
-    ).start()
+    )
+    if len(sys.argv) >= 2 and sys.argv[1] == "scrape":
+        EmaNews().initialize()
+        loop = asyncio.get_event_loop()
+        from jobs import scraper
+        loop.run_until_complete(scraper.scrape_everything())
+    else:
+        EmaNews().start()
 
 
 if __name__ == '__main__':

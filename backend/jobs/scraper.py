@@ -150,6 +150,7 @@ async def scrape_documents():
                 # Scraping documenti per ogni erba presente nel database
                 # Il recupero delle erbe avviene con un unbuffered cursor
                 for herb in await unbuffered_cur.fetchall():
+                    logger.debug("Scraping documents for herb {}".format(herb["english_name"]))
                     # Apro un secondo cursore (buffered) da usare per leggere/modificare i documenti
                     async with conn.cursor() as cur:
                         # Recupera i documenti attualmente salvati per questa erba
