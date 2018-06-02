@@ -1,10 +1,12 @@
 from aiohttp import web
 from aiohttp.web_request import Request
 
-import api
+from singletons.emanews import EmaNews
+
+emanews = EmaNews()
 
 
-@api.base
+@emanews.routes.get('/api/v1/public/ping')
 async def handle(request: Request):
     return web.json_response({
         "message": "ok"

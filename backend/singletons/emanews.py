@@ -3,6 +3,7 @@ import logging
 
 import aiomysql
 from aiohttp import web
+from aiohttp.web_routedef import RouteTableDef
 from aiomysql import DictCursor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -40,9 +41,9 @@ class EmaNews:
 
         self._initialized = False
         self.app: web.Application = None
+        self.routes: RouteTableDef = None
         self.db: aiomysql.Pool = None
-        self.scheduler: AsyncIOScheduler = AsyncIOScheduler()
-        self.setup_web_app()
+        self.scheduler: AsyncIOScheduler = None
 
     async def connect_db(self):
         """
@@ -58,18 +59,6 @@ class EmaNews:
             maxsize=self.db_pool_maxsize, cursorclass=DictCursor,
             charset="utf8", use_unicode=True
         )
-
-    def setup_web_app(self):
-        """
-        Imposta le routes dell'app aiohttp
-
-        :return:
-        """
-        from api.handlers import ping
-        self.app: web.Application() = web.Application()
-        self.app.add_routes([
-            web.get("/api/v1/ping", ping.handle)
-        ])
 
     async def dispose(self, _):
         """
@@ -87,27 +76,53 @@ class EmaNews:
         self.logger.info("Stopping scheduler...")
         self.scheduler.shutdown()
 
-    def initialize(self):
+    def initialize_web_app(self):
         """
-        Inizializza EmaNews:
-        - Crea il pool di connessioni al db
-        - Esegue le migrations
-        - Registra i jobs nello scheduler
+        Crea l'app aiohttp e registra le routes
 
         :return:
         """
-        self.logger.info("Initializing fitoemanews")
+        self.routes: RouteTableDef = RouteTableDef()
+        from api.handlers import ping
+        self.app: web.Application() = web.Application()
+        self.app.add_routes(self.routes)
+
+    def initialize_scheduler(self):
+        """
+        Crea lo schedulatore e registra i jobs
+
+        :return:
+        """
+        self.scheduler = AsyncIOScheduler()
+        from jobs import scraper
+
+    def initialize(self):
+        """
+        Inizializza EmaNews
+
+        :return:
+        """
         loop = asyncio.get_event_loop()
+
+        self.logger.info("Initializing fitoemanews")
+
+        # Registra route aiohttp
+        self.initialize_web_app()
+
+        # Connetti al db
         loop.run_until_complete(self.connect_db())
+
+        # Esegui migrations
         loop.run_until_complete(Migrator(self.db).migrate())
 
-        from jobs import scraper
+        # Registra job nello schedulatore
+        self.initialize_scheduler()
 
         self._initialized = True
 
     def start(self):
         """
-        Avvia lo scheduler e l'app aiohttp dell'API
+        Inizializza (se necessario) e avvia EmaNews
 
         :return:
         """
