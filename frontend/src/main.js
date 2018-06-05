@@ -11,7 +11,9 @@ import store from '@/store'
 import config from '@/config'
 
 Vue.config.productionTip = false
-Vue.use(Buefy)
+Vue.use(Buefy, {
+  defaultIconPack: 'fas'
+})
 Vue.use(VueResource)
 Vue.prototype.$store = store
 
