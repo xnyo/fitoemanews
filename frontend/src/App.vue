@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <navbar></navbar>
     <main-header
       :colour='$store.state.header.colour'
       :title='$store.state.header.title'
@@ -10,10 +11,13 @@
 </template>
 
 <script>
-import MainHeader from './components/MainHeader.vue'
+import MainHeader from '@/components/MainHeader.vue'
+import Navbar from '@/components/Navbar.vue'
+
 export default {
   components: {
-    MainHeader
+    MainHeader,
+    Navbar
   }
 }
 </script>
@@ -78,6 +82,8 @@ export default {
   $primary-invert: findColorInvert($primary);
   $info: #8c67ef;
   $info-invert: findColorInvert($info);
+  $dark-blue: #3273dc;
+  $dark-blue-invert: findColorInvert($dark-blue);
 
   // Setup $colors to use as bulma classes (e.g. 'is-twitter')
   $colors: (
@@ -89,7 +95,8 @@ export default {
       "info": ($info, $info-invert),
       "success": ($success, $success-invert),
       "warning": ($warning, $warning-invert),
-      "danger": ($danger, $danger-invert)
+      "danger": ($danger, $danger-invert),
+      "dark-blue": ($dark-blue, $dark-blue-invert)
   );
 
   // Links
