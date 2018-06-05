@@ -1,23 +1,19 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
+    <main-header
+      :colour='$store.state.header.colour'
+      :title='$store.state.header.title'
+      :subtitle='$store.state.header.subtitle'
+    ></main-header>
     <router-view/>
   </div>
 </template>
 
 <script>
+import MainHeader from './components/MainHeader.vue'
 export default {
-  name: 'App'
+  components: {
+    MainHeader
+  }
 }
 </script>
-
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
