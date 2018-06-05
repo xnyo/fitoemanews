@@ -8,7 +8,7 @@ import 'buefy/lib/buefy.css'
 import VueResource from 'vue-resource'
 
 import store from '@/store'
-import config from '@/config'
+import ApiMixin from '@/mixins/api'
 
 Vue.config.productionTip = false
 Vue.use(Buefy, {
@@ -16,6 +16,7 @@ Vue.use(Buefy, {
 })
 Vue.use(VueResource)
 Vue.prototype.$store = store
+Vue.mixin(ApiMixin)
 
 /* eslint-disable no-new */
 new Vue({
@@ -23,11 +24,6 @@ new Vue({
   router,
   components: { App },
   template: '<App/>',
-  methods: {
-    apiUrl (url) {
-      return `${config.apiURL}/${url}`
-    }
-  },
   mounted () {
     this.$http.get(this.apiUrl('api/v1/ping')).then(() => {
       console.log('Api online')
