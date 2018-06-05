@@ -1,6 +1,10 @@
 <template>
   <div>
-    Home
+    <div id="main-container" class="container is-widescreen">
+      <div class="notification ">
+        Homepage
+      </div>
+    </div>
   </div>
 </template>
 
