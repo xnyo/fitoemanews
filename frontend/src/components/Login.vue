@@ -1,6 +1,6 @@
 <template>
-    <div id="login-container" class="container" :class="{'is-loading': loading}">
-      <span class="icon has-text-primary is-large">
+    <div class="form-container" :class="{'is-loading': loading}">
+      <span class="icon has-text-primary is-large ttitle">
         <i class="fas fa-sign-in-alt fa-2x"></i>
         <h3 class="title">Login</h3>
       </span>
@@ -26,12 +26,12 @@
         <hr>
         <div class="text-centered">Non hai un account?</div>
         <div class="control">
-          <a class="button is-warning">
+          <button class="button is-warning" @click="$router.push('/signup')">
             <span class="icon">
               <i class="fas fa-user-plus"></i>
             </span>
             <span>Registrati</span>
-          </a>
+          </button>
         </div>
       </section>
     </div>
@@ -117,22 +117,7 @@ export default {
 </script>
 
 <style scoped>
-  #login-container {
-    width: 30%;
-    padding: 50px;
-    margin-top: 50px;
-    border-radius: 5px;
-    background-color: #fff;
-    box-shadow: 0 2px 3px rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.1);
-    color: #4a4a4a;
-  }
-
-  #login-container>span:first-child {
-    text-align: center;
-    width: 100%;
-  }
-
-  #login-container>span:first-child>i.fas {
+  .form-container>span:first-child>i.fas {
     margin: 10px;
   }
 

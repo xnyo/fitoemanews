@@ -42,6 +42,20 @@ export default {
     width: 100%;
     margin: 0 auto;
   }
+
+  .form-container {
+    width: 30%;
+    padding: 50px;
+    margin: 50px auto 50px auto;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
+    color: #4a4a4a;
+  }
+  .ttitle {
+    text-align: center !important;
+    width: 100% !important ;
+  }
 </style>
 
 <style lang="scss">

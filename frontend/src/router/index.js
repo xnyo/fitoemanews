@@ -3,6 +3,7 @@ import Router from 'vue-router'
 
 const Home = () => import(/* webpackChunkName: 'home' */ '@/components/Home')
 const Login = () => import(/* webpackChunkName: 'login' */ '@/components/Login')
+const SignUp = () => import(/* webpackChunkName: 'sign-up' */ '@/components/SignUp')
 
 Vue.use(Router)
 
@@ -17,6 +18,10 @@ const router = new Router({
       path: '/login',
       name: 'Login',
       component: Login
+    }, {
+      path: '/signup',
+      name: 'SignUp',
+      component: SignUp
     }
   ]
 })
