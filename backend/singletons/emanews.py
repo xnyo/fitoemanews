@@ -84,6 +84,7 @@ class EmaNews:
         """
         self.routes: RouteTableDef = RouteTableDef()
         from api.handlers import ping
+        from api.handlers import zxcvbn
         self.app: web.Application() = web.Application()
         self.app.add_routes(self.routes)
 
