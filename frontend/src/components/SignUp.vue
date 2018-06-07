@@ -19,13 +19,13 @@
           </b-field>
 
           <b-field label="Password" :type="password.type" :message="password.message">
-            <b-input v-model="password.value" type="password" @blur="updateField(password)"></b-input>
+            <b-input v-model="password.value" type="password" @blur="checkPasswords"></b-input>
           </b-field>
 
           <progress class="progress is-small" :class="[passwordBarColour]" :value="passwordBarValue" max="100">15%</progress>
 
           <b-field label="Ripeti password" :type="repeatPassword.type" :message="repeatPassword.message">
-            <b-input v-model="repeatPassword.value" type="password" @blur="updateField(repeatPassword)"></b-input>
+            <b-input v-model="repeatPassword.value" type="password" @blur="checkPasswords"></b-input>
           </b-field>
 
           <!-- <div class="field">
@@ -50,7 +50,7 @@
 </template>
 
 <script>
-
+import _ from 'underscore'
 
 export default {
   data() {
@@ -93,9 +93,38 @@ export default {
         field.type = 'is-danger'
       } else {
         field.message = ''
-        field.type = ''
+        field.type = 'is-success'
       }
-    }
+    },
+    checkPasswordStrength: _.debounce(function() {
+      // this.$http.get('api/v1/password_strength', {
+      //   params: {
+      //     password: this.password.value
+      //   }
+      // })
+    }),
+    checkPasswords () {
+      this.password.value = this.password.value.trim()
+      this.repeatPassword.value = this.repeatPassword.value.trim()
+      if (this.password.value === '' || this.repeatPassword.value === '' || this.password.value === this.repeatPassword.value) {
+        this.password.type = 'is-success'
+        this.password.message = ''
+        this.repeatPassword.type = 'is-success'
+        this.repeatPassword.message = ''
+        return
+      }
+      let msg = ''
+      if (this.passwordBarValue > -1 && this.passwordBarValue <= 25) {
+        msg = 'La password scelta è troppo debole'
+      } else if (this.password.value !== this.repeatPassword.value) {
+        msg = 'Le due password non corrispondono'
+      }
+      this.password.type = 'is-danger'
+      this.password.message = ''
+      this.repeatPassword.type = 'is-danger'
+      this.repeatPassword.message = msg
+    },
+    
   },
   computed: {
     passwordBarColour () {
