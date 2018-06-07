@@ -7,25 +7,25 @@
       <section>
         <form @submit.prevent="login">
           <b-field label="Nome" :type="name.type" :message="name.message">
-            <b-input v-model="name.value" @blur="updateField(name)"></b-input>
+            <b-input v-model="name.value" @blur="checkEmptyField(name)"></b-input>
           </b-field>
 
           <b-field label="Cognome" :type="surname.type" :message="surname.message">
-            <b-input v-model="surname.value" @blur="updateField(surname)"></b-input>
+            <b-input v-model="surname.value" @blur="checkEmptyField(surname)"></b-input>
           </b-field>
 
           <b-field label="Email" :type="email.type" :message="email.message">
-            <b-input v-model="email.value" type="email" @blur="updateField(email)"></b-input>
+            <b-input v-model="email.value" @blur="checkEmail(email)"></b-input>
           </b-field>
 
           <b-field label="Password" :type="password.type" :message="password.message">
-            <b-input v-model="password.value" type="password" @blur="checkPasswords"></b-input>
+            <b-input v-model="password.value" type="password" @blur="checkPasswords(password)" @input="checkPasswordStrength"></b-input>
           </b-field>
 
           <progress class="progress is-small" :class="[passwordBarColour]" :value="passwordBarValue" max="100">15%</progress>
 
           <b-field label="Ripeti password" :type="repeatPassword.type" :message="repeatPassword.message">
-            <b-input v-model="repeatPassword.value" type="password" @blur="checkPasswords"></b-input>
+            <b-input v-model="repeatPassword.value" type="password" @blur="checkPasswords(repeatPassword)"></b-input>
           </b-field>
 
           <!-- <div class="field">
@@ -51,68 +51,94 @@
 
 <script>
 import _ from 'underscore'
+import UtilsMixin from '@/mixins/utils'
 
 export default {
-  data() {
+  data () {
     return {
       email: {
         value: '',
         type: '',
         message: ''
-      }, password: {
-        value: '',
-        type: '',
-        message: ''
-      }, repeatPassword: {
-        value: '',
-        type: '',
-        message: ''
-      }, name: {
-        value: '',
-        type: '',
-        message: ''
-      }, surname: {
+      },
+      password: {
         value: '',
         type: '',
         message: ''
       },
-      passwordBarValue: 70
+      repeatPassword: {
+        value: '',
+        type: '',
+        message: ''
+      },
+      name: {
+        value: '',
+        type: '',
+        message: ''
+      },
+      surname: {
+        value: '',
+        type: '',
+        message: ''
+      },
+      passwordBarValue: 0
     }
   },
-  beforeMount() {
+  beforeMount () {
     this.$store.commit('setHeader', {
       title: 'Registrazione',
       subtitle: 'Inserisci i tuoi dati e crea un nuovo account'
     })
   },
   methods: {
-    updateField (field) {
+    checkEmptyField (field) {
       field.value = field.value.trim()
       if (field.value === '') {
         field.message = 'Questo campo è obbligatorio'
         field.type = 'is-danger'
+        return false
       } else {
         field.message = ''
         field.type = 'is-success'
+        return true
       }
     },
-    checkPasswordStrength: _.debounce(function() {
-      // this.$http.get('api/v1/password_strength', {
-      //   params: {
-      //     password: this.password.value
-      //   }
-      // })
-    }),
-    checkPasswords () {
-      this.password.value = this.password.value.trim()
-      this.repeatPassword.value = this.repeatPassword.value.trim()
-      if (this.password.value === '' || this.repeatPassword.value === '' || this.password.value === this.repeatPassword.value) {
+    checkEmail (field) {
+      if (this.checkEmptyField(field) && !this.validateEmail(field.value)) {
+        field.message = 'Indirizzo email non valido'
+        field.type = 'is-danger'
+      }
+    },
+    checkPasswordStrength: _.debounce(function () {
+      this.$http.get(this.apiUrl('api/v1/zxcvbn'), {
+        params: {
+          input: this.password.value
+        }
+      }).then((resp) => {
+        this.passwordBarValue = resp.data.strength
+        this.checkPasswords()
+      }, (resp) => {
+        this.passwordBarValue = 0
+        this.checkPasswords()
+      })
+    }, 500),
+    checkPasswords (field) {
+      if (typeof field !== 'undefined') {
+        this.checkEmptyField(field)
+      }
+      // this.password.value = this.password.value.trim()
+      // this.repeatPassword.value = this.repeatPassword.value.trim()
+      if (this.password.value === '' || this.repeatPassword.value === '') {
+        return
+      }
+      if (this.password.value === this.repeatPassword.value) {
         this.password.type = 'is-success'
         this.password.message = ''
         this.repeatPassword.type = 'is-success'
         this.repeatPassword.message = ''
         return
       }
+
       let msg = ''
       if (this.passwordBarValue > -1 && this.passwordBarValue <= 25) {
         msg = 'La password scelta è troppo debole'
@@ -123,8 +149,7 @@ export default {
       this.password.message = ''
       this.repeatPassword.type = 'is-danger'
       this.repeatPassword.message = msg
-    },
-    
+    }
   },
   computed: {
     passwordBarColour () {
@@ -136,7 +161,8 @@ export default {
         return 'is-success'
       }
     }
-  }
+  },
+  mixins: [UtilsMixin]
 }
 </script>
 

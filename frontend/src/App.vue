@@ -56,6 +56,12 @@ export default {
     text-align: center !important;
     width: 100% !important ;
   }
+.progress::-webkit-progress-value {
+  transition: all 0.5s ease;
+}
+.progress::-moz-progress-bar {
+  transition: all 0.5s ease;
+}
 </style>
 
 <style lang="scss">
@@ -85,7 +91,6 @@ export default {
     }
   }
 </style>
-
 
 <style lang="scss">
   // Import Bulma's core
