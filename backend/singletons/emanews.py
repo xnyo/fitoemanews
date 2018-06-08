@@ -81,11 +81,12 @@ class EmaNews:
 
         :return:
         """
-        from api.handlers import ping, zxcvbn_strength
+        from api.handlers import ping, zxcvbn_strength, user
         self.app: web.Application() = web.Application()
         self.app.add_routes([
             web.get("/api/v1/ping", ping.handle),
-            web.get("/api/v1/zxcvbn", zxcvbn_strength.handle)
+            web.get("/api/v1/zxcvbn", zxcvbn_strength.handle),
+            web.post("/api/v1/user", user.handle),
         ])
 
     def initialize_scheduler(self):
