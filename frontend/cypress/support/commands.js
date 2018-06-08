@@ -23,3 +23,12 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+import Config from '../../src/config.js'
+
+Cypress.Commands.add('zxcvbnApi', () => {
+  cy.server()
+  let strengths = [0, 25, 50, 75, 100]
+  strengths.forEach(strength => {
+    cy.route('GET', `${Config.apiURL}/api/v1/zxcvbn?input=${strength}password`, {strength}).as(`zxcvbn${strength}`)
+  })
+})
