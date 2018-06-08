@@ -6,7 +6,7 @@ from singletons.emanews import EmaNews
 emanews = EmaNews()
 
 
-@emanews.routes.get('/api/v1/public/ping')
+@emanews.routes.get('/api/v1/ping')
 async def handle(request: Request):
     return web.json_response({
         "message": "ok"

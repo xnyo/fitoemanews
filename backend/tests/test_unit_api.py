@@ -68,7 +68,7 @@ async def test_unhandled_api_error(unit_cli):
     assert resp.status == 500
     data = await resp.json()
     assert "status" in data and "message" in data
-    assert data["message"] == "Internal server error."
+    assert data["message"] == "Internal server error." or data["message"].startswith("Traceback")
 
 
 async def test_premade_schema(unit_cli):
