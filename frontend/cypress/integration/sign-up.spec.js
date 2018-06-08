@@ -111,4 +111,42 @@ describe('Sign Up', () => {
       cy.get('@password').should('have.class', (strength >= 50) ? 'is-success' : 'is-danger')
     })
   })
+
+  it('Disabled sign up button if data is invalid', () => {
+    cy.zxcvbnApi()
+    cy.visit('/signup')
+
+    cy.get('.button').as('submit')
+
+    let inputs = [
+      {
+        selector: ':nth-child(1) > .control > .input',
+        value: 'Nome'
+      }, {
+        selector: ':nth-child(2) > .control > .input',
+        value: 'Cognome'
+      }, {
+        selector: ':nth-child(3) > .control > .input',
+        value: 'indirizzo@email.it'
+      }, {
+        selector: ':nth-child(4) > .control > .input',
+        value: '100password'
+      }, {
+        selector: ':nth-child(6) > .control > .input',
+        value: '100password'
+      }
+    ]
+    inputs.forEach((element, idx) => {
+      cy.get(element.selector).type(element.value).should('have.value', element.value).blur()
+      if (idx === 3) {
+        cy.wait('@zxcvbn100')
+      }
+      cy.get(element.selector).should('have.class', 'is-success')
+      if (idx < inputs.length - 1) {
+        cy.get('@submit').should('have.attr', 'disabled')
+      } else {
+        cy.get('@submit').should('not.have.attr', 'disabled')
+      }
+    })
+  })
 })

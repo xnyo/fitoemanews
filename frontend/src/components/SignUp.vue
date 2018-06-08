@@ -6,26 +6,26 @@
       </span>
       <section>
         <form @submit.prevent="login">
-          <b-field label="Nome" :type="name.type" :message="name.message">
-            <b-input v-model="name.value" @blur="checkEmptyField(name)"></b-input>
+          <b-field label="Nome" :type="formData.name.type" :message="formData.name.message">
+            <b-input v-model="formData.name.value" @blur="checkEmptyField(formData.name)"></b-input>
           </b-field>
 
-          <b-field label="Cognome" :type="surname.type" :message="surname.message">
-            <b-input v-model="surname.value" @blur="checkEmptyField(surname)"></b-input>
+          <b-field label="Cognome" :type="formData.surname.type" :message="formData.surname.message">
+            <b-input v-model="formData.surname.value" @blur="checkEmptyField(formData.surname)"></b-input>
           </b-field>
 
-          <b-field label="Email" :type="email.type" :message="email.message">
-            <b-input v-model="email.value" @blur="checkEmail(email)"></b-input>
+          <b-field label="Email" :type="formData.email.type" :message="formData.email.message">
+            <b-input v-model="formData.email.value" @blur="checkEmail(formData.email)"></b-input>
           </b-field>
 
-          <b-field label="Password" :type="password.type" :message="password.message">
-            <b-input v-model="password.value" type="password" @blur="checkPasswords(password)" @input="checkPasswordStrength"></b-input>
+          <b-field label="Password" :type="formData.password.type" :message="formData.password.message">
+            <b-input v-model="formData.password.value" type="password" @blur="checkPasswords(formData.password)" @input="checkPasswordStrength"></b-input>
           </b-field>
 
           <progress class="progress is-small" :class="[passwordBarColour]" :value="passwordBarValue" max="100">15%</progress>
 
-          <b-field label="Ripeti password" :type="repeatPassword.type" :message="repeatPassword.message">
-            <b-input v-model="repeatPassword.value" type="password" @blur="checkPasswords(repeatPassword)"></b-input>
+          <b-field label="Ripeti password" :type="formData.repeatPassword.type" :message="formData.repeatPassword.message">
+            <b-input v-model="formData.repeatPassword.value" type="password" @blur="checkPasswords(formData.repeatPassword)"></b-input>
           </b-field>
 
           <!-- <div class="field">
@@ -37,7 +37,7 @@
           </div> -->
 
           <div class="control">
-            <button class="button is-success" @click="" type="submit">
+            <button class="button is-success" @click="" type="submit" :disabled="!isFormDataValid">
               <span class="icon">
                 <i class="fas fa-user-plus"></i>
               </span>
@@ -56,30 +56,32 @@ import UtilsMixin from '@/mixins/utils'
 export default {
   data () {
     return {
-      email: {
-        value: '',
-        type: '',
-        message: ''
-      },
-      password: {
-        value: '',
-        type: '',
-        message: ''
-      },
-      repeatPassword: {
-        value: '',
-        type: '',
-        message: ''
-      },
-      name: {
-        value: '',
-        type: '',
-        message: ''
-      },
-      surname: {
-        value: '',
-        type: '',
-        message: ''
+      formData: {
+        email: {
+          value: '',
+          type: '',
+          message: ''
+        },
+        password: {
+          value: '',
+          type: '',
+          message: ''
+        },
+        repeatPassword: {
+          value: '',
+          type: '',
+          message: ''
+        },
+        name: {
+          value: '',
+          type: '',
+          message: ''
+        },
+        surname: {
+          value: '',
+          type: '',
+          message: ''
+        }
       },
       passwordBarValue: 0
     }
@@ -112,7 +114,7 @@ export default {
     checkPasswordStrength: _.debounce(function () {
       this.$http.get(this.apiUrl('api/v1/zxcvbn'), {
         params: {
-          input: this.password.value
+          input: this.formData.password.value
         }
       }).then((resp) => {
         this.passwordBarValue = resp.data.strength
@@ -126,29 +128,27 @@ export default {
       if (typeof field !== 'undefined') {
         this.checkEmptyField(field)
       }
-      // this.password.value = this.password.value.trim()
-      // this.repeatPassword.value = this.repeatPassword.value.trim()
-      if (this.password.value === '' || this.repeatPassword.value === '') {
+      if (this.formData.password.value === '' || this.formData.repeatPassword.value === '') {
         return
       }
-      if (this.password.value === this.repeatPassword.value) {
-        this.password.type = 'is-success'
-        this.password.message = ''
-        this.repeatPassword.type = 'is-success'
-        this.repeatPassword.message = ''
+      if (this.formData.password.value === this.formData.repeatPassword.value) {
+        this.formData.password.type = 'is-success'
+        this.formData.password.message = ''
+        this.formData.repeatPassword.type = 'is-success'
+        this.formData.repeatPassword.message = ''
       }
 
       let msg = ''
       if (this.passwordBarValue > -1 && this.passwordBarValue < 50) {
         msg = 'La password scelta è troppo debole'
-      } else if (this.password.value !== this.repeatPassword.value) {
+      } else if (this.formData.password.value !== this.formData.repeatPassword.value) {
         msg = 'Le due password non corrispondono'
       }
       if (msg !== '') {
-        this.password.type = 'is-danger'
-        this.password.message = ''
-        this.repeatPassword.type = 'is-danger'
-        this.repeatPassword.message = msg
+        this.formData.password.type = 'is-danger'
+        this.formData.password.message = ''
+        this.formData.repeatPassword.type = 'is-danger'
+        this.formData.repeatPassword.message = msg
       }
     }
   },
@@ -161,6 +161,14 @@ export default {
       } else {
         return 'is-success'
       }
+    },
+    isFormDataValid () {
+      for (let key in this.formData) {
+        if (this.formData[key].type !== 'is-success') {
+          return false
+        }
+      }
+      return true
     }
   },
   mixins: [UtilsMixin]
