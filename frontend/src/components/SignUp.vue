@@ -136,19 +136,20 @@ export default {
         this.password.message = ''
         this.repeatPassword.type = 'is-success'
         this.repeatPassword.message = ''
-        return
       }
 
       let msg = ''
-      if (this.passwordBarValue > -1 && this.passwordBarValue <= 25) {
+      if (this.passwordBarValue > -1 && this.passwordBarValue < 50) {
         msg = 'La password scelta è troppo debole'
       } else if (this.password.value !== this.repeatPassword.value) {
         msg = 'Le due password non corrispondono'
       }
-      this.password.type = 'is-danger'
-      this.password.message = ''
-      this.repeatPassword.type = 'is-danger'
-      this.repeatPassword.message = msg
+      if (msg !== '') {
+        this.password.type = 'is-danger'
+        this.password.message = ''
+        this.repeatPassword.type = 'is-danger'
+        this.repeatPassword.message = msg
+      }
     }
   },
   computed: {
