@@ -133,6 +133,11 @@ export default {
       if (this.formData.password.value === '' || this.formData.repeatPassword.value === '') {
         return
       }
+      // if (this.passwordBarValue === -1) {
+      // field.type = ''
+      // field.message = ''
+      // return
+      // }
       if (this.formData.password.value === this.formData.repeatPassword.value) {
         this.formData.password.type = 'is-success'
         this.formData.password.message = ''
@@ -195,6 +200,13 @@ export default {
       }
       return true
     }
+  },
+  watch: {
+    'formData.name.value' () { this.checkEmptyField(this.formData.name) },
+    'formData.surname.value' () { this.checkEmptyField(this.formData.surname) },
+    'formData.email.value' () { this.checkEmail(this.formData.email) },
+    'formData.password.value' () { this.checkPasswords(this.formData.password) },
+    'formData.repeatPassword.value' () { this.checkPasswords(this.formData.repeatPassword) }
   },
   mixins: [UtilsMixin]
 }
