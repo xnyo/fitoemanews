@@ -14,6 +14,15 @@ from utils import singletons
 
 @pytest.fixture
 def unit_cli(loop, aiohttp_client):
+    """
+    Fixture per che ritorna una app aiohttp con delle route
+    per testare alcune funzionalità dei decorator @api.base,
+    @api.errors, @api.args
+
+    :param loop:
+    :param aiohttp_client:
+    :return:
+    """
     app = web.Application()
     app.router.add_get("/api/v1/ping", tests.unit_api.base.ping_handler)
     app.router.add_get("/api/v1/one_int", tests.unit_api.base.one_int_handler)
@@ -28,6 +37,12 @@ def unit_cli(loop, aiohttp_client):
 
 @pytest.fixture(scope="session")
 def drop_all_tables():
+    """
+    Fixture pytest che effettua una DROP TABLE su tutte le tabelle
+    del database test, definito in TEST_DB_NAME nella configurazione
+
+    :return:
+    """
     async def do():
         c = Config()
         async with aiomysql.connect(
@@ -77,4 +92,12 @@ def app(loop, drop_all_tables):
 
 @pytest.fixture
 def cli(app, aiohttp_client):
+    """
+    Fixture che ritorna una app aiohttp
+    corrispondente alla web api di EmaNews
+
+    :param app:
+    :param aiohttp_client:
+    :return:
+    """
     return asyncio.get_event_loop().run_until_complete(aiohttp_client(app))
