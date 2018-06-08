@@ -98,13 +98,9 @@ export default {
       }).then(() => {
         this.loading = false
       }, (resp) => {
-        let msg = 'Errore del server. Riprovare più tardi.'
-        if (resp.hasOwnProperty('message')) {
-          msg = resp.body.message
-        }
         this.loading = false
         this.$toast.open({
-          message: msg,
+          message: this.apiGetError(resp.body),
           type: 'is-danger',
           position: 'is-bottom',
           duration: 4000

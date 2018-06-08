@@ -1,11 +1,11 @@
 <template>
-    <div class="form-container">
+    <div class="form-container" :class="{'is-loading': loading}">
       <span class="icon has-text-primary is-large ttitle">
         <i class="fas fa-user-plus fa-2x"></i>
         <h3 class="title">Registrazione</h3>
       </span>
       <section>
-        <form @submit.prevent="login">
+        <form @submit.prevent="submit">
           <b-field label="Nome" :type="formData.name.type" :message="formData.name.message">
             <b-input v-model="formData.name.value" @blur="checkEmptyField(formData.name)"></b-input>
           </b-field>
@@ -37,7 +37,7 @@
           </div> -->
 
           <div class="control">
-            <button class="button is-success" @click="" type="submit" :disabled="!isFormDataValid">
+            <button class="button is-success" type="submit" :disabled="!isFormDataValid">
               <span class="icon">
                 <i class="fas fa-user-plus"></i>
               </span>
@@ -70,7 +70,8 @@ export default {
         repeatPassword: {
           value: '',
           type: '',
-          message: ''
+          message: '',
+          exclude: true
         },
         name: {
           value: '',
@@ -83,7 +84,8 @@ export default {
           message: ''
         }
       },
-      passwordBarValue: 0
+      passwordBarValue: 0,
+      loading: false
     }
   },
   beforeMount () {
@@ -150,6 +152,29 @@ export default {
         this.formData.repeatPassword.type = 'is-danger'
         this.formData.repeatPassword.message = msg
       }
+    },
+    submit () {
+      this.loading = true
+      this.$http.post(
+        this.apiUrl('api/v1/user'),
+        Object.keys(this.formData).filter(key =>
+          !this.formData[key].hasOwnProperty('exclude') || !this.formData[key].exclude
+        ).reduce((obj, key) => {
+          obj[key] = this.formData[key].value
+          return obj
+        }, {})
+      ).then(resp => {
+        this.loading = false
+        console.log('ok')
+      }, resp => {
+        this.loading = false
+        this.$toast.open({
+          message: this.apiGetError(resp.body),
+          type: 'is-danger',
+          position: 'is-bottom',
+          duration: 4000
+        })
+      })
     }
   },
   computed: {
