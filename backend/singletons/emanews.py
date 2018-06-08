@@ -24,7 +24,7 @@ class EmaNews:
         db_password: str = None, db_database: str = None,
         db_port: int = 3306, db_pool_minsize: int=None,
         db_pool_maxsize: int=None, debug: bool=False,
-        web_host: str=None, web_port: int=None
+        web_host: Optional[str]=None, web_port: Optional[int]=None
     ):
         self.db_host: str = db_host
         self.db_port: int = db_port

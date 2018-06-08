@@ -22,7 +22,8 @@ class Config:
             "DB_PORT": config("DB_PORT", default="3306", cast=int),
             "DB_USERNAME": config("DB_USERNAME"),
             "DB_PASSWORD": config("DB_PASSWORD"),
-            "DB_NAME": config("DB_NAME"),
+            "DB_NAME": config("DB_NAME", default="fitoemanews"),
+            "TEST_DB_NAME": config("TEST_DB_NAME", default="fitoemanewstest"),
 
             "DB_POOL_MIN_SIZE": config("DB_POOL_MIN_SIZE", default="1", cast=int),
             "DB_POOL_MAX_SIZE": config("DB_POOL_MAX_SIZE", default="8", cast=int),
