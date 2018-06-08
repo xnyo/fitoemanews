@@ -7,9 +7,9 @@ from aiohttp import web
 import tests.unit_api.base
 
 import tests.unit_api.errors
-from migrator.migrator import Migrator
 from singletons.config import Config
 from singletons.emanews import EmaNews
+from utils import singletons
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def unit_cli(loop, aiohttp_client):
     return loop.run_until_complete(aiohttp_client(app))
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def drop_all_tables():
     async def do():
         c = Config()
@@ -51,14 +51,15 @@ def drop_all_tables():
     asyncio.get_event_loop().run_until_complete(do())
 
 
-@pytest.fixture(scope="session", autouse=True)
-def app(drop_all_tables):
+@pytest.fixture()
+def app(loop, drop_all_tables):
     """
     Fixtrure eseguita una sola volta all'avvio della sessione.
     Crea il singleton EmaNews e ritorna l'app aiohttp
 
     :return:
     """
+    singletons.destroy_all()
     c = Config()
     server = EmaNews(
         db_host=c["DB_HOST"],
@@ -75,5 +76,5 @@ def app(drop_all_tables):
 
 
 @pytest.fixture
-def cli(loop, aiohttp_client, app):
-    return loop.run_until_complete(aiohttp_client(app))
+def cli(app, aiohttp_client):
+    return asyncio.get_event_loop().run_until_complete(aiohttp_client(app))
