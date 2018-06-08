@@ -4,7 +4,6 @@ from typing import Optional
 
 import aiomysql
 from aiohttp import web
-from aiohttp.web_routedef import RouteTableDef
 from aiomysql import DictCursor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -42,7 +41,6 @@ class EmaNews:
 
         self._initialized = False
         self.app: web.Application = None
-        self.routes: RouteTableDef = None
         self.db: aiomysql.Pool = None
         self.scheduler: AsyncIOScheduler = None
 
@@ -83,11 +81,12 @@ class EmaNews:
 
         :return:
         """
-        self.routes: RouteTableDef = RouteTableDef()
-        from api.handlers import ping
-        from api.handlers import zxcvbn_strength
+        from api.handlers import ping, zxcvbn_strength
         self.app: web.Application() = web.Application()
-        self.app.add_routes(self.routes)
+        self.app.add_routes([
+            web.get("/api/v1/ping", ping.handle),
+            web.get("/api/v1/zxcvbn", zxcvbn_strength.handle)
+        ])
 
     def initialize_scheduler(self):
         """
