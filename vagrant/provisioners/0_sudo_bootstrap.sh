@@ -32,6 +32,7 @@ packageslist=(
     python3.6
     python3.6-dev
     build-essential
+    libffi-dev
 )
 apt-get install -q -y ${packageslist[@]}
 
