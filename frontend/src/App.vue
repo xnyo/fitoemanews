@@ -72,6 +72,18 @@ export default {
   .hide-children * {
     visibility: hidden !important;
   }
+
+  @media only screen and (max-width: 991px) {
+    .form-container {
+      width: 90%;
+    }
+  }
+
+  @media only screen and (min-width: 992px) and (max-width: 1599px) {
+    .form-container {
+      width: 50%;
+    }
+  }
 </style>
 
 <style lang="scss">
