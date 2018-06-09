@@ -33,6 +33,8 @@ packageslist=(
     python3.6-dev
     build-essential
     libffi-dev
+    tcl
+    gcc
 )
 apt-get install -q -y ${packageslist[@]}
 
@@ -47,5 +49,26 @@ pip install virtualenv
 echo "=> Installing nodejs"
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 sudo apt-get install -q -y nodejs
+
+echo "=> Installing redis"
+cd /tmp
+curl -Os http://download.redis.io/redis-stable.tar.gz
+tar xzf redis-stable.tar.gz
+cd redis-stable
+make &> /dev/null
+make install &> /dev/null
+mkdir /etc/redis
+cp /tmp/redis-stable/redis.conf /etc/redis
+sed -i -e "s/supervised no/supervised systemd/" /etc/redis/redis.conf
+sed -i -e "s,dir ./,dir /var/lib/redis," /etc/redis/redis.conf
+cp /vagrant/vagrant/configs/redis.service /etc/systemd/system/redis.service
+adduser --system --group --no-create-home redis
+mkdir /var/lib/redis
+chown redis:redis /var/lib/redis
+chmod 770 /var/lib/redis
+sudo systemctl start redis
+sudo systemctl enable redis
+sleep 5
+redis-cli PING
 
 echo "@ System bootstrap completed!"
