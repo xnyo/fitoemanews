@@ -17,7 +17,7 @@ async def handle(request: Request):
             await cur.execute("SELECT id, user_id FROM activation_tokens WHERE token = %s LIMIT 1", (token,))
             db_token = await cur.fetchone()
             if not db_token:
-                raise NotFoundError("Token attivazione non valido")
+                raise NotFoundError("Token di attivazione non valido")
             await cur.execute("DELETE FROM activation_tokens WHERE id = %s LIMIT 1", (db_token["id"],))
             await cur.execute("UPDATE users SET privileges = %s WHERE id = %s LIMIT 1",
                               (int(Privileges.NORMAL), db_token["user_id"]))
