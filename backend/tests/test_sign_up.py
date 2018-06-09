@@ -116,13 +116,6 @@ async def test_activate_invalid_token(cli):
     assert data["message"] == "Token di attivazione non valido"
 
 
-async def test_activate_invalid_token(cli):
-    resp = await cli.post("/api/v1/activate/asdiohasdihjsad")
-    assert resp.status == 404
-    data = await resp.json()
-    assert data["message"] == "Token di attivazione non valido"
-
-
 async def test_activate_valid_token(cli):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
