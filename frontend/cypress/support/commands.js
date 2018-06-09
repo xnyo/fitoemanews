@@ -32,3 +32,25 @@ Cypress.Commands.add('zxcvbnApi', () => {
     cy.route('GET', `${Config.apiURL}/api/v1/zxcvbn?input=${strength}password`, {strength}).as(`zxcvbn${strength}`)
   })
 })
+
+Cypress.Commands.add('activateApi', () => {
+  cy.server()
+  cy.route({
+    delay: 2000,
+    method: 'POST',
+    url: `${Config.apiURL}/api/v1/activate/valid_token`,
+    response: {
+      message: 'ok'
+    },
+    status: 200
+  }).as('activateValid')
+  cy.route({
+    delay: 2000,
+    method: 'POST',
+    url: `${Config.apiURL}/api/v1/activate/invalid_token`,
+    response: {
+      message: 'Messaggio di errore'
+    },
+    status: 404
+  }).as('activateInvalid')
+})
