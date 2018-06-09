@@ -9,6 +9,7 @@ import api
 from constants.privileges import Privileges
 from exceptions.api import ConflictError
 from singletons.emanews import EmaNews
+from utils import general
 
 
 @api.base
@@ -64,7 +65,13 @@ async def handle(request: Request, data):
                     int(Privileges.PENDING_ACTIVATION)
                 )
             )
+
+            # Genera e salva token attivazione account
+            token = general.random_string_secure(64)
+            await cur.execute("INSERT INTO activation_tokens (user_id, token) VALUES (%s, %s)",
+                              (cur.lastrowid, token))
             await conn.commit()
+    # TODO: Invio email
 
     # Ok!
     return web.json_response({
