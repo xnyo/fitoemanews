@@ -1,3 +1,4 @@
+from constants.privileges import Privileges
 from singletons.emanews import EmaNews
 
 
@@ -11,8 +12,13 @@ async def test_sign_up_valid(cli):
     assert resp.status == 200
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("SELECT id FROM users WHERE email = 'valid@emailaddr.es' LIMIT 1")
-            assert await cur.fetchone()
+            await cur.execute("SELECT users.id AS uid, activation_tokens.id AS aid, privileges "
+                              "FROM users JOIN activation_tokens "
+                              "ON users.id = activation_tokens.user_id "
+                              "WHERE email = 'valid@emailaddr.es' LIMIT 1")
+            row = await cur.fetchone()
+            assert row and row["uid"] and row["aid"]
+            assert row["privileges"] == Privileges.PENDING_ACTIVATION
 
 
 async def test_sign_up_missing_all_fields(cli):
@@ -96,3 +102,44 @@ async def test_sign_up(cli):
     assert resp.status == 400
     data = await resp.json()
     assert data["message"] == "Indirizzo email non valido"
+
+
+async def test_activate_no_token(cli):
+    resp = await cli.post("/api/v1/activate/")
+    assert resp.status == 404
+
+
+async def test_activate_invalid_token(cli):
+    resp = await cli.post("/api/v1/activate/asdiohasdihjsad")
+    assert resp.status == 404
+    data = await resp.json()
+    assert data["message"] == "Token di attivazione non valido"
+
+
+async def test_activate_invalid_token(cli):
+    resp = await cli.post("/api/v1/activate/asdiohasdihjsad")
+    assert resp.status == 404
+    data = await resp.json()
+    assert data["message"] == "Token di attivazione non valido"
+
+
+async def test_activate_valid_token(cli):
+    async with EmaNews().db.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT token, user_id FROM activation_tokens LIMIT 1")
+            token = await cur.fetchone()
+            assert token and "token" in token
+
+        resp = await cli.post("/api/v1/activate/{}".format(token["token"]))
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["message"] == "ok"
+
+    async with EmaNews().db.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT token FROM activation_tokens LIMIT 1")
+            assert not await cur.fetchone()
+
+            await cur.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (token["user_id"],))
+            privileges = await cur.fetchone()
+            assert privileges and privileges["privileges"] & Privileges.NORMAL
