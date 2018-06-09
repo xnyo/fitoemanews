@@ -170,13 +170,7 @@ export default {
         }, {})
       ).then(resp => {
         this.loading = false
-        console.log('ok')
-        this.$toast.open({
-          message: resp.body.message,
-          type: 'is-success',
-          position: 'is-bottom',
-          duration: 4000
-        })
+        this.$emit('done')
       }, resp => {
         this.loading = false
         this.$toast.open({

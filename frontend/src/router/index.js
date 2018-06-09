@@ -3,7 +3,8 @@ import Router from 'vue-router'
 
 const Home = () => import(/* webpackChunkName: 'home' */ '@/components/Home')
 const Login = () => import(/* webpackChunkName: 'login' */ '@/components/Login')
-const SignUp = () => import(/* webpackChunkName: 'sign-up' */ '@/components/SignUp')
+const SignUp = () => import(/* webpackChunkName: 'sign-up' */ '@/components/SignUp/Page')
+const Activate = () => import(/* webpackChunkName: 'sign-up-activate' */ '@/components/SignUp/ActivatePage')
 
 Vue.use(Router)
 
@@ -22,6 +23,10 @@ const router = new Router({
       path: '/signup',
       name: 'SignUp',
       component: SignUp
+    }, {
+      path: '/activate/:token',
+      name: 'Activate',
+      component: Activate
     }
   ]
 })

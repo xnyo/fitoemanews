@@ -56,12 +56,22 @@ export default {
     text-align: center !important;
     width: 100% !important ;
   }
-.progress::-webkit-progress-value {
-  transition: all 0.5s ease;
-}
-.progress::-moz-progress-bar {
-  transition: all 0.5s ease;
-}
+  .progress::-webkit-progress-value {
+    transition: all 0.5s ease;
+  }
+  .progress::-moz-progress-bar {
+    transition: all 0.5s ease;
+  }
+  .form-container>span:first-child>i.fas {
+    margin: 10px;
+  }
+
+  .form-container>span:first-child {
+    margin-bottom: 10px;
+  }
+  .hide-children * {
+    visibility: hidden !important;
+  }
 </style>
 
 <style lang="scss">

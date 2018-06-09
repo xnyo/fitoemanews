@@ -113,10 +113,6 @@ export default {
 </script>
 
 <style scoped>
-  .form-container>span:first-child>i.fas {
-    margin: 10px;
-  }
-
   .button {
     width: 100%;
     margin-top: 10px;
