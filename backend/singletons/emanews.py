@@ -83,7 +83,7 @@ class EmaNews:
             maxsize=self.redis_pool_size
         )
 
-    async def dispose(self, _):
+    async def dispose(self, _=None):
         """
         Chiude le risorse aperte dal web server.
         Da chiamare prima della chiusura.
@@ -95,6 +95,10 @@ class EmaNews:
         self.logger.info("Closing db pool...")
         self.db.terminate()
         await self.db.wait_closed()
+
+        self.logger.info("Closing redis pool...")
+        self.redis.close()
+        await self.redis.wait_closed()
 
         self.logger.info("Stopping scheduler...")
         self.scheduler.shutdown()
