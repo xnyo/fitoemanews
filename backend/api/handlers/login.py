@@ -4,13 +4,14 @@ from aiohttp.web_request import Request
 from schema import And, Use
 
 import api
-from api.sessions import Session
+from api.sessions import Session, SessionFactory
 from constants.privileges import Privileges
 from exceptions.api import NotFoundError, ForbiddenError
 from singletons.emanews import EmaNews
 
 
 @api.base
+@api.guest_only
 @api.args({
     "email": str,
     "password": And(
@@ -32,7 +33,7 @@ async def handle(request: Request, data):
                                      "di posta elettronica e clicca sul link che hai ricevuto per verificare "
                                      "il tuo account.")
 
-    session = await Session.new_session(db_user["id"])
+    session = await SessionFactory.new_session(db_user["id"])
     resp = web.json_response({
         "message": "ok"
     })

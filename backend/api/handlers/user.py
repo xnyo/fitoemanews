@@ -6,13 +6,15 @@ from schema import And, Use
 from zxcvbn import zxcvbn
 
 import api
+from api.sessions import Session
 from constants.privileges import Privileges
 from exceptions.api import ConflictError
 from singletons.emanews import EmaNews
-from utils import general
+from utils import general, gravatar
 
 
 @api.base
+@api.guest_only
 @api.args({
     "name": And(
         str,
@@ -40,7 +42,7 @@ from utils import general
         error="La password scelta è troppo debole"
     ),
 })
-async def handle(request: Request, data):
+async def post(request: Request, data):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
             # Controlla se l'indirizzo email è stato già usato
@@ -77,3 +79,17 @@ async def handle(request: Request, data):
     return web.json_response({
         "message": "ok"
     })
+
+
+@api.base
+@api.protected()
+async def get(session: Session, request: Request):
+    async with EmaNews().db.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "SELECT name, surname, privileges, email FROM users WHERE id = %s LIMIT 1", (session.user_id,)
+            )
+            db_user = await cur.fetchone()
+    db_user["gravatar_hash"] = gravatar.get_hash(db_user["email"])
+    del db_user["email"]
+    return web.json_response(db_user)

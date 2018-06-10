@@ -110,7 +110,8 @@ class EmaNews:
         self.app.add_routes([
             web.get("/api/v1/ping", ping.handle),
             web.get("/api/v1/zxcvbn", zxcvbn_strength.handle),
-            web.post("/api/v1/user", user.handle),
+            web.post("/api/v1/user", user.post),
+            web.get("/api/v1/user", user.get),
             web.post("/api/v1/activate/{token}", activate.handle),
             web.post("/api/v1/login", login.handle),
         ])

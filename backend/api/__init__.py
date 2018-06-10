@@ -8,6 +8,8 @@ from aiohttp.web_response import Response
 from multidict import MultiDict
 from schema import Schema, SchemaError, And, Use
 
+from api import sessions
+from constants.privileges import Privileges
 from exceptions import api
 from singletons.emanews import EmaNews
 
@@ -172,3 +174,52 @@ def args(schema_: Union[Schema, dict]) -> Callable:
             return await f(request, data, *args, **kwargs)
         return wrapper
     return decorator
+
+
+def protected(required_privileges: Privileges=Privileges.NORMAL) -> Callable:
+    """
+    Decorator che rende un handler accessibile solo se si è loggati e si dispone di
+    determinati privilegi.
+
+    :param required_privileges: Flag necessari. Il controllo avviene con un bitwise and.
+    :type required_privileges: Privileges
+    :return:
+    """
+    def decorator(f: Callable) -> Callable:
+        async def wrapper(request: web.Request, *args, **kwargs) -> Response:
+            session_token = request.cookies.get("session")
+            if not session_token:
+                raise api.NotAuthenticatedError()
+
+            try:
+                session = await sessions.SessionFactory.load_from_redis(session_token)
+
+                async with EmaNews().db.acquire() as conn:
+                    async with conn.cursor() as cur:
+                        await cur.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (session.user_id,))
+                        privs = await cur.fetchone()
+                        if not privs:
+                            raise sessions.SessionError("User not found")
+                        if not (privs["privileges"] & required_privileges):
+                            raise api.ForbiddenError("Insufficient privileges")
+            except sessions.SessionError as e:
+                await sessions.SessionFactory.delete_from_redis(session_token)
+                raise api.ForbiddenError(e)
+
+            return await f(session, request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def guest_only(f: Callable) -> Callable:
+    """
+    Decorator che rende un handler accessbile solo agli utenti non loggati.
+
+    :param f:
+    :return:
+    """
+    async def wrapper(request: web.Request, *args, **kwargs) -> Response:
+        if request.cookies.get("session"):
+            raise api.ForbiddenError("You are already logged in")
+        return await f(request, *args, **kwargs)
+    return wrapper
