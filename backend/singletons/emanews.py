@@ -162,6 +162,7 @@ class EmaNews:
         self.scheduler.start()
         self.app.on_cleanup.append(self.dispose)
         self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
+        logging.getLogger("aiohttp.access").setLevel(logging.DEBUG if self.debug else logging.CRITICAL)
         try:
             web.run_app(self.app, port=self.web_port, print=None)
         finally:
