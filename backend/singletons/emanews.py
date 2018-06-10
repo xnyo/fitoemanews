@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 import aiomysql
+import aioredis
 from aiohttp import web
 from aiomysql import DictCursor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -23,8 +24,11 @@ class EmaNews:
         db_host: str = None, db_username: str = None,
         db_password: str = None, db_database: str = None,
         db_port: int = 3306, db_pool_minsize: int=None,
-        db_pool_maxsize: int=None, debug: bool=False,
-        web_host: Optional[str]=None, web_port: Optional[int]=None
+        redis_host: str = "127.0.0.1", redis_port: int = 6379,
+        redis_database: int = 0, redis_password: str = None,
+        redis_pool_size: int = 8, db_pool_maxsize: int=None,
+        web_host: Optional[str]=None, web_port: Optional[int]=None,
+        debug: bool = False
     ):
         self.db_host: str = db_host
         self.db_port: int = db_port
@@ -33,6 +37,11 @@ class EmaNews:
         self.db_database: str = db_database
         self.db_pool_minsize: int = db_pool_minsize
         self.db_pool_maxsize: int = db_pool_maxsize
+        self.redis_host: str = redis_host
+        self.redis_port: int = redis_port
+        self.redis_database: int = redis_database
+        self.redis_password: str = redis_password
+        self.redis_pool_size: int = redis_pool_size
         self.debug: bool = debug
         self.web_host: str = web_host
         self.web_port: int = web_port
@@ -42,6 +51,7 @@ class EmaNews:
         self._initialized = False
         self.app: web.Application = None
         self.db: aiomysql.Pool = None
+        self.redis: aioredis.Redis = None
         self.scheduler: AsyncIOScheduler = None
 
     async def connect_db(self):
@@ -57,6 +67,20 @@ class EmaNews:
             db=self.db_database, minsize=self.db_pool_minsize,
             maxsize=self.db_pool_maxsize, cursorclass=DictCursor,
             charset="utf8", use_unicode=True
+        )
+
+    async def connect_redis(self):
+        """
+        Crea un pool di connessioni a redis
+
+        :return:
+        """
+        self.logger.info("Connecting to redis...")
+        self.redis = await aioredis.create_redis_pool(
+            address=(self.redis_host, self.redis_port),
+            db=self.redis_database,
+            password=self.redis_password,
+            maxsize=self.redis_pool_size
         )
 
     async def dispose(self, _):
@@ -81,13 +105,14 @@ class EmaNews:
 
         :return:
         """
-        from api.handlers import ping, zxcvbn_strength, user, activate
+        from api.handlers import ping, zxcvbn_strength, user, activate, login
         self.app: web.Application() = web.Application()
         self.app.add_routes([
             web.get("/api/v1/ping", ping.handle),
             web.get("/api/v1/zxcvbn", zxcvbn_strength.handle),
             web.post("/api/v1/user", user.handle),
             web.post("/api/v1/activate/{token}", activate.handle),
+            web.post("/api/v1/login", login.handle),
         ])
 
     def initialize_scheduler(self):
@@ -114,6 +139,9 @@ class EmaNews:
 
         # Connetti al db
         loop.run_until_complete(self.connect_db())
+
+        # Connetti a redis
+        loop.run_until_complete(self.connect_redis())
 
         # Esegui migrations
         loop.run_until_complete(Migrator(self.db).migrate())

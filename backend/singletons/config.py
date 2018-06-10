@@ -18,6 +18,12 @@ class Config:
             "HTTP_HOST": config("HTTP_HOST", default="127.0.0.1"),
             "HTTP_PORT": config("HTTP_PORT", default="8000", cast=int),
 
+            "REDIS_HOST": config("REDIS_HOST", default="127.0.0.1"),
+            "REDIS_PORT": config("REDIS_PORT", default="6379", cast=int),
+            "REDIS_DATABASE": config("REDIS_DATABASE", default="0", cast=int),
+            "REDIS_PASSWORD": config("REDIS_PASSWORD", default=None),
+            "REDIS_POOL_SIZE": config("REDIS_POOL_SIZE", default="8", cast=int),
+
             "DB_HOST": config("DB_HOST"),
             "DB_PORT": config("DB_PORT", default="3306", cast=int),
             "DB_USERNAME": config("DB_USERNAME"),

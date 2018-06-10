@@ -15,7 +15,7 @@
           </b-field>
 
           <div class="control">
-            <button class="button is-success" @click="login" type="submit">
+            <button class="button is-success" type="submit">
               <span class="icon">
                 <i class="fas fa-sign-in-alt"></i>
               </span>
@@ -93,10 +93,11 @@ export default {
 
       this.loading = true
       this.$http.post(this.apiUrl('api/v1/login'), {
-        email: this.email,
-        password: this.password
+        email: this.email.value,
+        password: this.password.value
       }).then(() => {
         this.loading = false
+        this.$router.push('/')
       }, (resp) => {
         this.loading = false
         this.$toast.open({
