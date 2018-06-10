@@ -17,7 +17,12 @@ def main():
         db_pool_maxsize=c["DB_POOL_MAX_SIZE"],
         debug=c["DEBUG"],
         web_host=c["HTTP_HOST"],
-        web_port=c["HTTP_PORT"]
+        web_port=c["HTTP_PORT"],
+        redis_host=c["REDIS_HOST"],
+        redis_port=c["REDIS_PORT"],
+        redis_password=c["REDIS_PASSWORD"],
+        redis_database=c["REDIS_DATABASE"],
+        redis_pool_size=c["REDIS_POOL_SIZE"],
     )
     if len(sys.argv) >= 2 and sys.argv[1] == "scrape":
         EmaNews().initialize()
