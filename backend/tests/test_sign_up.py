@@ -1,5 +1,6 @@
 from constants.privileges import Privileges
 from singletons.emanews import EmaNews
+from tests.conftest import login
 
 
 async def test_sign_up_valid(cli):
@@ -136,3 +137,14 @@ async def test_activate_valid_token(cli):
             await cur.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (token["user_id"],))
             privileges = await cur.fetchone()
             assert privileges and privileges["privileges"] & Privileges.NORMAL
+
+
+async def test_sign_up_logged_in(cli):
+    await login(cli)
+    resp = await cli.post("/api/v1/login", json={
+        "name": "Name",
+        "surname": "Surname",
+        "email": "valid@emailaddr.es",
+        "password": "somequalitypassword"
+    })
+    assert resp.status == 403

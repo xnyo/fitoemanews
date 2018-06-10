@@ -21,6 +21,7 @@ class Config:
             "REDIS_HOST": config("REDIS_HOST", default="127.0.0.1"),
             "REDIS_PORT": config("REDIS_PORT", default="6379", cast=int),
             "REDIS_DATABASE": config("REDIS_DATABASE", default="0", cast=int),
+            "REDIS_TEST_DATABASE": config("REDIS_TEST_DATABASE", default="1", cast=int),
             "REDIS_PASSWORD": config("REDIS_PASSWORD", default=None),
             "REDIS_POOL_SIZE": config("REDIS_POOL_SIZE", default="8", cast=int),
 
