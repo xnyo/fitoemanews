@@ -95,6 +95,9 @@ def errors(f: Callable) -> Callable:
             resp = json_error_response(201, readable_exception(e, "Created"))
         except api.NotAuthenticatedError:
             resp = json_error_response(401, "Not authenticated")
+        except api.ForceLogoutError as e:
+            resp = json_error_response(200, readable_exception(e, "Disconnected"))
+            resp.del_cookie("session")
         except asyncio.CancelledError:
             resp = json_error_response(400, "Request was interrupted")
         except Exception:
@@ -204,7 +207,7 @@ def protected(required_privileges: Privileges=Privileges.NORMAL) -> Callable:
                             raise api.ForbiddenError("Insufficient privileges")
             except sessions.SessionError as e:
                 await sessions.SessionFactory.delete_from_redis(session_token)
-                raise api.ForbiddenError(e)
+                raise api.ForceLogoutError(e)
 
             return await f(session, request, *args, **kwargs)
         return wrapper

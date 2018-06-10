@@ -87,7 +87,7 @@ async def get(session: Session, request: Request):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                "SELECT name, surname, privileges, email FROM users WHERE id = %s LIMIT 1", (session.user_id,)
+                "SELECT id, name, surname, privileges, email FROM users WHERE id = %s LIMIT 1", (session.user_id,)
             )
             db_user = await cur.fetchone()
     db_user["gravatar_hash"] = gravatar.get_hash(db_user["email"])

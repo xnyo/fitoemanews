@@ -72,6 +72,10 @@ export default {
   .hide-children * {
     visibility: hidden !important;
   }
+  .avatar {
+    border-radius: 50%;
+    margin-right: 10px;
+  }
 
   @media only screen and (max-width: 991px) {
     .form-container {

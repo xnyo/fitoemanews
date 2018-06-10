@@ -3,6 +3,14 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
+const defaultUserInfo = {
+  id: 0,
+  name: '',
+  surname: '',
+  privileges: 0,
+  gravatar_hash: ''
+}
+
 export default new Vuex.Store({
   state: {
     header: {
@@ -13,6 +21,13 @@ export default new Vuex.Store({
     api: {
       checkingStatus: true,
       offline: false
+    },
+    userInfo: Object.assign({}, defaultUserInfo),
+    loggingIn: false
+  },
+  getters: {
+    loggedIn: (state) => {
+      return state.userInfo.id > 0
     }
   },
   mutations: {
@@ -26,6 +41,16 @@ export default new Vuex.Store({
     apiOnline: (state) => {
       state.api.checkingStatus = false
       state.api.offline = false
+    },
+    setUserInfo: (state, v) => {
+      // state.userInfo = Object.assign({}, state.userInfo, v)
+      state.userInfo = v
+    },
+    resetUserInfo: (state) => {
+      state.userInfo = Object.assign({}, defaultUserInfo)
+    },
+    setLoggingIn: (state, v) => {
+      state.loggingIn = v
     }
   }
 })

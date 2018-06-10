@@ -38,8 +38,6 @@
 </template>
 
 <script>
-import ApiMixin from '@/mixins/api'
-
 export default {
   data () {
     return {
@@ -95,7 +93,7 @@ export default {
       this.$http.post(this.apiUrl('api/v1/login'), {
         email: this.email.value,
         password: this.password.value
-      }).then(() => {
+      }).then((resp) => {
         this.loading = false
         this.$router.push('/')
       }, (resp) => {
@@ -108,8 +106,7 @@ export default {
         })
       })
     }
-  },
-  mixins: [ApiMixin]
+  }
 }
 </script>
 
