@@ -11,7 +11,7 @@ const defaultUserInfo = {
   gravatar_hash: ''
 }
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
   state: {
     header: {
       title: '',
@@ -23,7 +23,7 @@ export default new Vuex.Store({
       offline: false
     },
     userInfo: Object.assign({}, defaultUserInfo),
-    loggingIn: false
+    loggingIn: true
   },
   getters: {
     loggedIn: (state) => {
@@ -54,3 +54,5 @@ export default new Vuex.Store({
     }
   }
 })
+
+export default store

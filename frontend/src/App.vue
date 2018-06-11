@@ -6,7 +6,11 @@
       :title='$store.state.header.title'
       :subtitle='$store.state.header.subtitle'
     ></main-header>
-    <router-view :class="{'is-loading': $store.state.api.checkingStatus}"/>
+    <router-view v-if="!$store.state.loggingIn" ref="view"></router-view>
+    <div id="login-container" class="notification container is-widescreen" v-else>
+      <div class="is-loading">
+      </div>
+    </div>
   </div>
 </template>
 
@@ -25,6 +29,15 @@ export default {
 <style>
   #main-container {
     margin-top: 20px;
+  }
+
+  #login-container {
+    margin-top: 20px;
+    height: 200px;
+  }
+
+  #login-container>div {
+    height: 100%;
   }
 
   html {
@@ -75,6 +88,12 @@ export default {
   .avatar {
     border-radius: 50%;
     margin-right: 10px;
+  }
+  .pagination-link, .pagination-previous, .pagination-next {
+    text-decoration: none !important;
+  }
+  .notification a:not(.button) {
+    text-decoration: none !important;
   }
 
   @media only screen and (max-width: 991px) {

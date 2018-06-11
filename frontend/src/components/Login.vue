@@ -94,8 +94,7 @@ export default {
         email: this.email.value,
         password: this.password.value
       }).then((resp) => {
-        this.loading = false
-        this.$router.push('/')
+        window.location.replace('/')
       }, (resp) => {
         this.loading = false
         this.$toast.open({

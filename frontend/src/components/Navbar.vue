@@ -64,18 +64,20 @@ export default {
   methods: {
     logout () {
       this.$store.commit('setLoggingIn', true)
-      this.$http.post(this.apiUrl('api/v1/logout')).then((resp) => {
-        this.$store.commit('setLoggingIn', false)
-        this.$store.commit('resetUserInfo')
-      }, (resp) => {
-        this.$store.commit('setLoggingIn', false)
-        this.$toast.open({
-          message: this.apiGetError(resp.body),
-          type: 'is-danger',
-          position: 'is-bottom',
-          duration: 4000
-        })
-      })
+      this.$http.post(this.apiUrl('api/v1/logout'))
+        .then(
+          () => {
+            window.location.replace('/login')
+          },
+          (resp) => {
+            this.$store.commit('setLoggingIn', false)
+            this.$toast.open({
+              message: this.apiGetError(resp.body),
+              type: 'is-danger',
+              position: 'is-bottom',
+              duration: 4000
+            })
+          })
     }
   }
 }
