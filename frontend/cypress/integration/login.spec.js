@@ -1,6 +1,6 @@
 import Config from '../../src/config.js'
 
-describe('Activate', () => {
+describe('Login', () => {
   it('Accepts valid input', () => {
     cy.visit('/login')
     cy.get(':nth-child(1) > .control > .input').type('email@addr.es').should('have.value', 'email@addr.es')
@@ -22,14 +22,15 @@ describe('Activate', () => {
   })
 
   it('Logs in with valid credentials', () => {
-    cy.server()
+    cy.notLoggedInApi()
     cy.route('POST', `${Config.apiURL}/api/v1/login`, {message: 'ok'}).as(`login`)
 
     cy.visit('/login')
+    cy.wait('@userData')
+    cy.route('GET', `${Config.apiURL}/api/v1/user`, {})
     cy.get(':nth-child(1) > .control > .input').type('email@addr.es')
     cy.get(':nth-child(2) > .control > .input').type('password')
     cy.get(':nth-child(3) > .button').click()
-    cy.route('GET', `${Config.apiURL}/api/v1/user`, {})
     cy.wait('@login')
     cy.location('pathname').should('eq', '/')
   })
@@ -52,5 +53,20 @@ describe('Activate', () => {
     cy.wait('@login')
     cy.get('.toast').should('have.text', 'Messaggio di errore')
     cy.location('pathname').should('eq', '/login')
+  })
+
+  it('Displays user info in navbar when logged in', () => {
+    cy.loggedInApi()
+    cy.visit('/')
+    cy.wait('@userData')
+    cy.get('.navbar-link').should('contain', 'User Test')
+    cy.get('.avatar').should('have.attr', 'src', 'https://gravatar.com/avatar/gravatar-hash')
+  })
+
+  it('Display login button in navbar when logged in', () => {
+    cy.notLoggedInApi()
+    cy.visit('/login')
+    cy.wait('@userData')
+    cy.get('.navbar-end > .navbar-item').should('contain', 'Login')
   })
 })

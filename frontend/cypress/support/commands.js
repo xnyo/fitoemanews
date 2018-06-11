@@ -62,7 +62,7 @@ Cypress.Commands.add('loggedInApi', () => {
     surname: 'Test',
     id: 1,
     privileges: 2,
-    gravatar: 'gravatar-hash'
+    gravatar_hash: 'gravatar-hash'
   }).as('userData')
 })
 
