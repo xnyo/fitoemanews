@@ -3,7 +3,8 @@ import Config from '../../src/config.js'
 describe('Login', () => {
   it('Accepts valid input', () => {
     cy.visit('/login')
-    cy.get(':nth-child(1) > .control > .input').type('email@addr.es').should('have.value', 'email@addr.es')
+    let address = 'email@addr.es'
+    cy.get(':nth-child(1) > .control > .input').type(address).should('have.value', address)
     cy.get(':nth-child(2) > .control > .input').type('password').should('have.value', 'password')
   })
 
