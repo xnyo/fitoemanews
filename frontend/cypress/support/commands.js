@@ -54,3 +54,26 @@ Cypress.Commands.add('activateApi', () => {
     status: 404
   }).as('activateInvalid')
 })
+
+Cypress.Commands.add('loggedInApi', () => {
+  cy.server()
+  cy.route('GET', `${Config.apiURL}/api/v1/user`, {
+    name: 'User',
+    surname: 'Test',
+    id: 1,
+    privileges: 2,
+    gravatar: 'gravatar-hash'
+  }).as('userData')
+})
+
+Cypress.Commands.add('notLoggedInApi', () => {
+  cy.server()
+  cy.route({
+    method: 'GET',
+    url: `${Config.apiURL}/api/v1/user`,
+    response: {
+      message: 'Messaggio di errore'
+    },
+    status: 401
+  }).as('userData')
+})
