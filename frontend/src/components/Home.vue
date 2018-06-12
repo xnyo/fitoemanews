@@ -32,12 +32,9 @@
               {{ new Date(props.row.latest_update * 1000).toLocaleDateString() }}
             </b-table-column>
 
-            <!-- <b-table-column label="Gender">
-                <b-icon pack="fa"
-                    :icon="props.row.gender === 'Male' ? 'mars' : 'venus'">
-                </b-icon>
-                {{ props.row.gender }}
-            </b-table-column> -->
+            <b-table-column field="url" label="Link" class="text-centered" width="110">
+              <a :href="props.row.url" target="_blank" class="button is-small is-light">Consulta</a>
+            </b-table-column>
         </template>
 
         <template slot="detail" slot-scope="props">
@@ -50,7 +47,7 @@
               <b-table-column field="language" label="Lingua" sortable>{{ docprops.row.language }}</b-table-column>
               <b-table-column field="first_published" label="Data pubbl." sortable>{{ new Date(docprops.row.first_published * 1000).toLocaleDateString() }}</b-table-column>
               <b-table-column field="last_updated_ema" label="Ultimo agg." sortable>{{ docprops.row.last_updated_ema }}</b-table-column>
-              <b-table-column field="url" label="Link." sortable><a :href="docprops.row.url" target="_blank" class="button is-small is-primary">Consulta</a></b-table-column>
+              <b-table-column field="url" label="Link"><a :href="docprops.row.url" target="_blank" class="button is-small is-primary">Consulta</a></b-table-column>
             </template>
           </b-table>
         </template>
