@@ -30,11 +30,11 @@
             </b-table-column>
 
             <b-table-column field="latest_update" label="Ultimo agg." class="text-centered" sortable width="110">
-              {{ formatDate(new Date(props.row.latest_update * 1000)) }}
+              {{ formatDate(props.row.latest_update) }}
             </b-table-column>
 
             <b-table-column field="url" label="Link" class="text-centered" width="110">
-              <a :href="props.row.url" target="_blank" class="button is-small is-light">Consulta</a>
+              <a :href="props.row.url" target="_blank" class="button is-rounded is-small is-light">Consulta</a>
             </b-table-column>
         </template>
 
@@ -46,9 +46,11 @@
               </b-table-column>
               <b-table-column field="name" label="Nome" sortable>{{ docprops.row.name }}</b-table-column>
               <b-table-column field="language" label="Lingua" sortable>{{ docprops.row.language }}</b-table-column>
-              <b-table-column field="first_published" label="Data pubbl." sortable>{{ formatDate(new Date(docprops.row.first_published * 1000)) }}</b-table-column>
-              <b-table-column field="last_updated_ema" label="Ultimo agg." sortable>{{ docprops.row.last_updated_ema }}</b-table-column>
-              <b-table-column field="url" label="Link"><a :href="docprops.row.url" target="_blank" class="button is-small is-primary">Consulta</a></b-table-column>
+              <b-table-column field="first_published" label="Data pubbl." sortable>
+                {{ formatDate(docprops.row.first_published) }}
+              </b-table-column>
+              <b-table-column field="last_updated_ema" label="Ultimo agg." sortable>{{ formatDate(docprops.row.last_updated_ema) }}</b-table-column>
+              <b-table-column field="url" label="Link"><a :href="docprops.row.url" target="_blank" class="button is-rounded is-small is-primary">Consulta</a></b-table-column>
             </template>
           </b-table>
         </template>
@@ -123,7 +125,12 @@ export default {
       return 0
     },
 
-    formatDate (d = new Date()) {
+    formatDate (unix) {
+      if (unix === null) {
+        return ''
+      }
+
+      let d = new Date(unix * 1000)
       let month = String(d.getMonth() + 1)
       let day = String(d.getDate())
       const year = String(d.getFullYear())
