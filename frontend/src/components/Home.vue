@@ -2,6 +2,7 @@
   <div>
     <div class="notification" v-if="$store.getters.loggedIn">
       <b-table
+        id="herbs-table"
         :data="data"
         paginated
         per-page="50"
@@ -22,14 +23,14 @@
                 {{ props.row.english_name }}
             </b-table-column>
 
-            <b-table-column field="status" label="Stato" class="text-centered" sortable>
+            <b-table-column field="status" label="Stato" class="text-centered" sortable :custom-sort="sortStatus">
               <b-tooltip :label="statusTooltipText(props.row.status)" position="is-left" type="is-dark" animated>
                 <b-tag :type="statusColour(props.row.status)">{{ props.row.status }}</b-tag>
               </b-tooltip>
             </b-table-column>
 
             <b-table-column field="latest_update" label="Ultimo agg." class="text-centered" sortable width="110">
-              {{ new Date(props.row.latest_update * 1000).toLocaleDateString() }}
+              {{ formatDate(new Date(props.row.latest_update * 1000)) }}
             </b-table-column>
 
             <b-table-column field="url" label="Link" class="text-centered" width="110">
@@ -45,7 +46,7 @@
               </b-table-column>
               <b-table-column field="name" label="Nome" sortable>{{ docprops.row.name }}</b-table-column>
               <b-table-column field="language" label="Lingua" sortable>{{ docprops.row.language }}</b-table-column>
-              <b-table-column field="first_published" label="Data pubbl." sortable>{{ new Date(docprops.row.first_published * 1000).toLocaleDateString() }}</b-table-column>
+              <b-table-column field="first_published" label="Data pubbl." sortable>{{ formatDate(new Date(docprops.row.first_published * 1000)) }}</b-table-column>
               <b-table-column field="last_updated_ema" label="Ultimo agg." sortable>{{ docprops.row.last_updated_ema }}</b-table-column>
               <b-table-column field="url" label="Link"><a :href="docprops.row.url" target="_blank" class="button is-small is-primary">Consulta</a></b-table-column>
             </template>
@@ -105,11 +106,32 @@ export default {
       return 'Altro'
     },
     documentTypeColour (type) {
-      console.log(type)
       if (type === 'consultation') {
         return 'is-dark-blue'
       }
       return 'is-dark'
+    },
+
+    sortStatus (a, b, isAsc) {
+      const order = ['R', 'C', 'D', 'P', 'PF', 'F']
+      if (order.indexOf(a.status) > order.indexOf(b.status)) {
+        return isAsc ? 1 : -1
+      }
+      if (order.indexOf(a.status) < order.indexOf(b.status)) {
+        return isAsc ? -1 : 1
+      }
+      return 0
+    },
+
+    formatDate (d = new Date()) {
+      let month = String(d.getMonth() + 1)
+      let day = String(d.getDate())
+      const year = String(d.getFullYear())
+
+      if (month.length < 2) month = '0' + month
+      if (day.length < 2) day = '0' + day
+
+      return `${day}/${month}/${year}`
     }
   }
 }
