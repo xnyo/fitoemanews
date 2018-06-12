@@ -1,6 +1,25 @@
 <template>
   <div>
     <div class="notification" v-if="$store.getters.loggedIn">
+      <nav class="level">
+        <div class="level-left"></div>
+        <div class="level-right">
+          <b-field>
+            <div class="level-item">
+              <b-input
+                placeholder="Ricerca"
+                type="search"
+                icon-pack="fas"
+                icon="search"
+                rounded
+                @input="search"
+                v-model="query"
+              >
+              </b-input>
+            </div>
+          </b-field>
+        </div>
+      </nav>
       <b-table
         id="herbs-table"
         :data="data"
@@ -9,6 +28,7 @@
         detailed
         detail-key="id"
         hoverable
+        :loading="loading"
       >
         <template slot-scope="props">
             <b-table-column field="id" label="Nome latino" sortable>
@@ -66,14 +86,19 @@
 </template>
 
 <script>
+import _ from 'underscore'
+
 export default {
   data () {
     return {
-      data: []
+      data: [],
+      loading: true,
+      query: ''
     }
   },
   mounted () {
-    this.$http.get(this.apiUrl('api/v1/herbs')).then(resp => { this.data = resp.body.herbs })
+    // this.$http.get(this.apiUrl('api/v1/herbs')).then(resp => { this.data = resp.body.herbs })
+    this.getHerbs()
   },
   methods: {
     statusTooltipText (letter) {
@@ -134,7 +159,21 @@ export default {
       if (day.length < 2) day = '0' + day
 
       return `${day}/${month}/${year}`
-    }
+    },
+
+    getHerbs () {
+      this.loading = true
+      this.$http.get(this.apiUrl('api/v1/herbs'), {
+        params: {
+          query: this.query
+        }
+      }).then((resp) => {
+        this.loading = false
+        this.data = resp.body.herbs
+      })
+    },
+
+    search: _.debounce(function () { this.getHerbs() }, 500)
   }
 }
 </script>
