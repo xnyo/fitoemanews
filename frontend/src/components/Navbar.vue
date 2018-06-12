@@ -17,7 +17,7 @@
         </a>
 
         <div class="navbar-dropdown is-right">
-          <a class="navbar-item">
+          <a class="navbar-item" @click="$router.push('/notification_settings')">
             <span class="icon has-white-text">
               <i class="fas fa-bell"></i>
             </span>
