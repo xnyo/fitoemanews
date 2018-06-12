@@ -130,7 +130,7 @@ class SessionFactory:
     async def new_session(cls, user_id: int, data: Optional[Dict[str, Any]]=None) -> Session:
         """
         Crea una nuova sessione per un utente, con token casuale e la salva in redis.
-        
+
         :param user_id: id utente
         :type user_id: int
         :param data: dati aggiuntivi della sessione da salvare in redis.
