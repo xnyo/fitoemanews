@@ -17,3 +17,4 @@ src/config.js
 # Cypress examples
 cypress/fixtures/example.json
 cypress/integration/examples/
+cypress/videos

@@ -9,7 +9,8 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src",
     "build": "node build/build.js",
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "cypresshl": "cypress run"
   },
   "dependencies": {
     "buefy": "^0.6.6",
