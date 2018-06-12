@@ -14,15 +14,20 @@ else
     echo "=> Virtualenv already exists! Virtualenv creation skipped."
 fi
 
-echo "=> Installing dependencies"
+echo "=> Installing requirements"
 ~/.pyenv/bin/pip install -r requirements.txt
 ~/.pyenv/bin/pip install -r requirements-dev.txt
 
 echo "=> Creating database"
 mysql -u root -proot -e "DROP DATABASE IF EXISTS fitoemanews; CREATE DATABASE fitoemanews;"
 
+echo "=> Creating test database"
+mysql -u root -proot -e "DROP DATABASE IF EXISTS fitoemanewstest; CREATE DATABASE fitoemanewstest;"
+
 echo "=> Configuring fitoemanews"
 cp /vagrant/vagrant/configs/fitoemanews.ini /vagrant/backend/settings.ini
 
-# echo "=> Running migrations"
-# ~/.pyenv/bin/python poc.py migrate
+echo "=> Running migrations and first scrape (this may take a while)"
+~/.pyenv/bin/python fitoemanews.py scrape
+
+echo "@ Backend set up!"
