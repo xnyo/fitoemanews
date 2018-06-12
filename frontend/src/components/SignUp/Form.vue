@@ -88,12 +88,6 @@ export default {
       loading: false
     }
   },
-  beforeMount () {
-    this.$store.commit('setHeader', {
-      title: 'Registrazione',
-      subtitle: 'Inserisci i tuoi dati e crea un nuovo account'
-    })
-  },
   methods: {
     checkEmptyField (field) {
       field.value = field.value.trim()

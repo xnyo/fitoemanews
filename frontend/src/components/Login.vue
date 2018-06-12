@@ -54,13 +54,6 @@ export default {
       loading: false
     }
   },
-  beforeMount () {
-    this.$store.commit('setHeader', {
-      title: 'Login',
-      subtitle: 'Inserisci le tue credenziali per accedere',
-      colour: 'primary'
-    })
-  },
   methods: {
     login () {
       let error = false

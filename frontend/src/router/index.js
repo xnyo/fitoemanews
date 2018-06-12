@@ -6,6 +6,7 @@ const Home = () => import(/* webpackChunkName: 'home' */ '@/components/Home')
 const Login = () => import(/* webpackChunkName: 'login' */ '@/components/Login')
 const SignUp = () => import(/* webpackChunkName: 'sign-up' */ '@/components/SignUp/Page')
 const Activate = () => import(/* webpackChunkName: 'sign-up-activate' */ '@/components/SignUp/ActivatePage')
+const NotificationSettings = () => import(/* webpackChunkName: 'notification-settings' */ '@/components/NotificationSettings/Page')
 
 Vue.use(Router)
 
@@ -17,28 +18,44 @@ const router = new Router({
       name: 'Home',
       component: Home,
       meta: {
-        protected: true
+        protected: true,
+        title: 'EmaNews',
+        subtitle: 'Lista farmaci a base di erbe per uso umano'
       }
     }, {
       path: '/login',
       name: 'Login',
       component: Login,
       meta: {
-        guestsOnly: true
+        guestsOnly: true,
+        title: 'Login',
+        subtitle: 'Inserisci le tue credenziali per accedere'
       }
     }, {
       path: '/signup',
       name: 'SignUp',
       component: SignUp,
       meta: {
-        guestsOnly: true
+        guestsOnly: true,
+        title: 'Registrazione',
+        subtitle: 'Inserisci i tuoi dati e crea un nuovo account'
       }
     }, {
       path: '/activate/:token',
       name: 'Activate',
       component: Activate,
       meta: {
-        guestsOnly: true
+        guestsOnly: true,
+        title: 'Attivazione account'
+      }
+    }, {
+      path: '/notification_settings',
+      name: 'NotificationSettings',
+      component: NotificationSettings,
+      meta: {
+        protected: true,
+        title: 'Impostazioni notifiche',
+        subtitle: 'Scegli quando essere notificato da EmaNews'
       }
     }
   ]
@@ -58,6 +75,15 @@ router.beforeEach((to, from, next) => {
   } else {
     next()
   }
+})
+
+router.afterEach((to, from) => {
+  Store.commit('setHeader', {
+    title: to.meta.title,
+    subtitle: to.meta.subtitle,
+    colour: to.meta.colour
+  })
+  document.title = `Emanews - ${to.meta.title}`
 })
 
 export default router

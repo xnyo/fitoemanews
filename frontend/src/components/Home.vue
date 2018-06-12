@@ -72,11 +72,6 @@ export default {
       data: []
     }
   },
-  beforeMount () {
-    this.$store.commit('setHeader', {
-      subtitle: 'Homepage'
-    })
-  },
   mounted () {
     this.$http.get(this.apiUrl('api/v1/herbs')).then(resp => { this.data = resp.body.herbs })
   },
