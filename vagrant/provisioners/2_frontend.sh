@@ -2,7 +2,7 @@
 
 echo "=> Installing npm modules"
 cd /vagrant/frontend
-npm install
+CI=true npm install
 
 echo "=> Configuring frontend"
 cp /vagrant/vagrant/configs/fitoemanews.js /vagrant/frontend/src/config.js
