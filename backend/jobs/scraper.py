@@ -166,6 +166,7 @@ async def scrape_documents():
                             tree = html.fromstring(await resp.text())
 
                             # Elabora ogni documento, sia nella scheda "consultations" che "other"
+                            update_herb_latest_update = False
                             for document in itertools.chain(
                                 scrape_table(".//div[@id='consultation']//table/tbody/tr", "consultation"),
                                 scrape_table(".//div[@id='documents']//table/tbody/tr", "other")
@@ -177,13 +178,10 @@ async def scrape_documents():
                                     None
                                 )
 
-                                # Se update_herb = True, aggiorna la data di aggiornamento dell'erba
-                                # relativa a questo documento
-                                update_herb = False
                                 if matching_document is None:
                                     # Nuovo documento
+                                    update_herb_latest_update = True
                                     logging.debug("Adding {}".format(document))
-                                    update_herb = True
                                     await cur.execute(
                                         "INSERT INTO documents (herb_id, type, name, language, "
                                         "first_published, last_updated_ema, url) VALUES "
@@ -203,7 +201,7 @@ async def scrape_documents():
                                 ):
                                     # Data aggiornamento presente (precedentemente mancante)
                                     # o superiore a quella salvata, aggiorna informazioni nel db
-                                    update_herb = True
+                                    update_herb_latest_update = True
                                     logging.debug("Updating {}".format(document))
                                     await cur.execute(
                                         "UPDATE documents SET type = %s, name = %s, language = %s,"
@@ -216,14 +214,20 @@ async def scrape_documents():
                                         )
                                     )
 
-                                if update_herb:
-                                    # Se abbiamo aggiunto/aggiornato un documento di questa erba,
-                                    # modifica anche la data di aggiornamento dell'erba
-                                    await cur.execute("UPDATE herbs SET latest_update = %s WHERE id = %s LIMIT 1",
-                                                      (herb["id"], int(time.time())))
+                            if update_herb_latest_update:
+                                # Se abbiamo aggiunto/aggiornato un documento di questa erba,
+                                # modifica anche la data di aggiornamento dell'erba
+                                await cur.execute(
+                                    "UPDATE herbs SET latest_update = IFNULL(("
+                                    "  SELECT IFNULL(last_updated_ema, first_published) FROM documents "
+                                    "  WHERE herb_id = %(herb_id)s"
+                                    "  ORDER BY last_updated_ema, first_published DESC LIMIT 1"
+                                    "), UNIX_TIMESTAMP()) WHERE id = %(herb_id)s LIMIT 1",
+                                    {"herb_id": herb["id"]}
+                                )
 
-                                # Commit per ogni documento
-                                await conn.commit()
+                            # Commit per ogni erba
+                            await conn.commit()
 
 
 @emanews.scheduler.scheduled_job(
