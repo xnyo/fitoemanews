@@ -10,8 +10,8 @@ import api
 @api.args({
     "input": And(str, lambda x: x)
 })
-async def handle(request: Request, data):
-    result = zxcvbn(data["input"])
+async def handle(request: Request, *, params):
+    result = zxcvbn(params["input"])
     return web.json_response({
         "strength": (100 * result["score"]) / 4
     })

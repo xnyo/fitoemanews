@@ -19,14 +19,14 @@ from singletons.emanews import EmaNews
         Use(lambda x: x.encode())
     )
 })
-async def handle(request: Request, data):
+async def handle(request: Request, *, params):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("SELECT * FROM users WHERE email = %s LIMIT 1", (data["email"],))
+            await cur.execute("SELECT * FROM users WHERE email = %s LIMIT 1", (params["email"],))
             db_user = await cur.fetchone()
             if not db_user:
                 raise NotFoundError("L'indirizzo email inserito non è associato a nessun account")
-            if not bcrypt.checkpw(data["password"], db_user["password"]):
+            if not bcrypt.checkpw(params["password"], db_user["password"]):
                 raise ForbiddenError("La password inserita è errata")
             if db_user["privileges"] & Privileges.PENDING_ACTIVATION:
                 raise ForbiddenError("L'account non è ancora stato attivato. Per favore, controlla la tua casella "

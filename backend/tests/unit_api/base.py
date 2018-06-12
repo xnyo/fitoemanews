@@ -16,10 +16,10 @@ async def ping_handler(request: Request):
 @api.args({
     "value": Use(int)
 })
-async def one_int_handler(request: Request, data):
+async def one_int_handler(request: Request, *, params):
     return web.json_response({
         "message": "ok",
-        "value": data["value"]
+        "value": params["value"]
     })
 
 
@@ -28,10 +28,10 @@ async def one_int_handler(request: Request, data):
     "a": Use(int),
     "b": Use(int)
 })
-async def sum_handler(request: Request, data):
+async def sum_handler(request: Request, *, params):
     return web.json_response({
         "message": "ok",
-        "result": data["a"] + data["b"]
+        "result": params["a"] + params["b"]
     })
 
 
@@ -39,8 +39,8 @@ async def sum_handler(request: Request, data):
 @api.args(Schema(
     {"a": str}
 ))
-async def premade_schema(request: Request, data):
+async def premade_schema(request: Request, *, params):
     return web.json_response({
         "message": "ok",
-        "result": data["a"]
+        "result": params["a"]
     })

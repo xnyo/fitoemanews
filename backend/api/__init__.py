@@ -174,7 +174,7 @@ def args(schema_: Union[Schema, dict]) -> Callable:
                 raise api.InvalidArgumentsError(e)
 
             # Schema ok, chiama handler
-            return await f(request, data, *args, **kwargs)
+            return await f(request, *args, params=data, *args, **kwargs)
         return wrapper
     return decorator
 
@@ -209,7 +209,7 @@ def protected(required_privileges: Privileges=Privileges.NORMAL) -> Callable:
                 await sessions.SessionFactory.delete_from_redis(session_token)
                 raise api.ForceLogoutError(e)
 
-            return await f(session, request, *args, **kwargs)
+            return await f(request, *args, session=session, **kwargs)
         return wrapper
     return decorator
 

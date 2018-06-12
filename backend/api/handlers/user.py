@@ -42,27 +42,27 @@ from utils import general, gravatar
         error="La password scelta è troppo debole"
     ),
 })
-async def post(request: Request, data):
+async def post(request: Request, *, params):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
             # Controlla se l'indirizzo email è stato già usato
-            await cur.execute("SELECT id FROM users WHERE email = %s LIMIT 1", (data["email"],))
+            await cur.execute("SELECT id FROM users WHERE email = %s LIMIT 1", (params["email"],))
             other_user = await cur.fetchone()
             if other_user:
                 # Già usato
                 raise ConflictError("Esiste già un altro utente registrato con questo indirizzo email.")
 
             # Ok, hash password con bcrypt
-            bcrypted_password = bcrypt.hashpw(data["password"], bcrypt.gensalt())
+            bcrypted_password = bcrypt.hashpw(params["password"], bcrypt.gensalt())
 
             # Insert in db
             await cur.execute(
                 "INSERT INTO users (name, surname, email, password, privileges) "
                 "VALUES (%s, %s, %s, %s, %s)",
                 (
-                    data["name"],
-                    data["surname"],
-                    data["email"],
+                    params["name"],
+                    params["surname"],
+                    params["email"],
                     bcrypted_password.decode(),
                     int(Privileges.PENDING_ACTIVATION)
                 )
@@ -83,7 +83,7 @@ async def post(request: Request, data):
 
 @api.base
 @api.protected()
-async def get(session: Session, request: Request):
+async def get(request: Request, *, session: Session):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(

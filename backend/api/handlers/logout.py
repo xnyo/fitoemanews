@@ -7,6 +7,6 @@ from exceptions.api import ForceLogoutError
 
 @api.base
 @api.protected()
-async def handle(session: Session, request: Request):
+async def handle(request: Request, *, session: Session):
     await session.destroy()
     raise ForceLogoutError("ok")
