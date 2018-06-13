@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import ToastMixin from '@/mixins/toast'
+
 export default {
   data () {
     return {
@@ -90,15 +92,11 @@ export default {
         window.location.replace('/')
       }, (resp) => {
         this.loading = false
-        this.$toast.open({
-          message: this.apiGetError(resp.body),
-          type: 'is-danger',
-          position: 'is-bottom',
-          duration: 4000
-        })
+        this.openApiErrorToast(resp)
       })
     }
-  }
+  },
+  mixins: [ToastMixin]
 }
 </script>
 

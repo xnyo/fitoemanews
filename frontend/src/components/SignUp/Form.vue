@@ -52,6 +52,7 @@
 <script>
 import _ from 'underscore'
 import UtilsMixin from '@/mixins/utils'
+import ToastMixin from '@/mixins/toast'
 
 export default {
   data () {
@@ -162,17 +163,12 @@ export default {
           obj[key] = this.formData[key].value
           return obj
         }, {})
-      ).then(resp => {
+      ).then((resp) => {
         this.loading = false
         this.$emit('done')
-      }, resp => {
+      }, (resp) => {
         this.loading = false
-        this.$toast.open({
-          message: this.apiGetError(resp.body),
-          type: 'is-danger',
-          position: 'is-bottom',
-          duration: 4000
-        })
+        this.openApiErrorToast(resp)
       })
     }
   },
@@ -202,7 +198,7 @@ export default {
     'formData.password.value' () { this.checkPasswords(this.formData.password) },
     'formData.repeatPassword.value' () { this.checkPasswords(this.formData.repeatPassword) }
   },
-  mixins: [UtilsMixin]
+  mixins: [UtilsMixin, ToastMixin]
 }
 </script>
 

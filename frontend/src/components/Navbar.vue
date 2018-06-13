@@ -57,6 +57,8 @@
 </template>
 
 <script>
+import ToastMixin from '@/mixins/toast'
+
 export default {
   computed: {
     gravatarUrl () {
@@ -73,15 +75,11 @@ export default {
           },
           (resp) => {
             this.$store.commit('setLoggingIn', false)
-            this.$toast.open({
-              message: this.apiGetError(resp.body),
-              type: 'is-danger',
-              position: 'is-bottom',
-              duration: 4000
-            })
+            this.openApiErrorToast(resp)
           })
     }
-  }
+  },
+  mixins: [ToastMixin]
 }
 </script>
 
