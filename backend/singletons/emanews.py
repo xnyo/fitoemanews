@@ -120,7 +120,8 @@ class EmaNews:
             web.post("/api/v1/login", login.handle),
             web.post("/api/v1/logout", logout.handle),
             web.get("/api/v1/herbs", herbs.handle),
-            web.get("/api/v1/notification_settings", notification_settings.handle),
+            web.get("/api/v1/notification_settings", notification_settings.get),
+            web.post("/api/v1/notification_settings", notification_settings.post)
         ])
 
     def initialize_scheduler(self):
