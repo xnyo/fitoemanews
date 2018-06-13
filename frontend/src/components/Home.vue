@@ -23,15 +23,25 @@
       <b-table
         id="herbs-table"
         :data="data"
+
         paginated
-        per-page="50"
+        backend-pagination
+        :total="totalHerbs"
+        :per-page="perPage"
+        @page-change="onPageChange"
+
+        backend-sorting
+        default-sort-direction="desc"
+        :default-sort="[sortField, sortOrder]"
+        @sort="onSort"
+
         detailed
         detail-key="id"
         hoverable
         :loading="loading"
       >
         <template slot-scope="props">
-            <b-table-column field="id" label="Nome latino" sortable>
+            <b-table-column field="latin_name" label="Nome latino" sortable>
                 {{ props.row.latin_name }}
             </b-table-column>
 
@@ -76,12 +86,6 @@
         </template>
       </b-table>
     </div>
-    <!-- <div i="main-container" class="container is-widescreen" v-else> -->
-      <!-- <div class="notification"> -->
-        <!-- Per favore, effettua l'accesso: -->
-
-      <!-- </div> -->
-    <!-- </div> -->
   </div>
 </template>
 
@@ -93,11 +97,15 @@ export default {
     return {
       data: [],
       loading: true,
-      query: ''
+      query: '',
+      totalHerbs: 0,
+      page: 1,
+      perPage: 50,
+      sortField: 'latin_name',
+      sortOrder: 'asc'
     }
   },
   mounted () {
-    // this.$http.get(this.apiUrl('api/v1/herbs')).then(resp => { this.data = resp.body.herbs })
     this.getHerbs()
   },
   methods: {
@@ -165,15 +173,32 @@ export default {
       this.loading = true
       this.$http.get(this.apiUrl('api/v1/herbs'), {
         params: {
-          query: this.query
+          query: this.query,
+          limit: this.perPage,
+          page: this.page - 1,
+          order_by: this.sortField,
+          direction: this.sortOrder
         }
       }).then((resp) => {
         this.loading = false
         this.data = resp.body.herbs
+        this.totalHerbs = resp.body.total
       })
     },
 
-    search: _.debounce(function () { this.getHerbs() }, 500)
+    search: _.debounce(function () { this.getHerbs() }, 500),
+
+    onPageChange (page) {
+      this.page = page
+      this.getHerbs()
+    },
+
+    onSort (field, order) {
+      this.sortField = field
+      console.log(this.sortOrder)
+      this.sortOrder = order
+      this.getHerbs()
+    }
   }
 }
 </script>
