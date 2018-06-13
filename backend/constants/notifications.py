@@ -1,7 +1,7 @@
 from enum import IntFlag, auto
 
 
-class NotificationEvents(IntFlag):
+class NotificationWhen(IntFlag):
     NONE = 0
     NEW_MEDICINE = auto()
     MEDICINE_UPDATE = auto()

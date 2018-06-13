@@ -54,12 +54,12 @@
       <h6 class="title is-6"><i class="fas fa-capsules"></i>  Per:</h6>
       <div class="block">
         <div class="field">
-          <b-radio v-model="allHerbs" native-value="true">
+          <b-radio v-model="allHerbs" :native-value="true">
             Tutti i medicinali
           </b-radio>
         </div>
         <div class="field">
-          <b-radio v-model="allHerbs" native-value="false">
+          <b-radio v-model="allHerbs" :native-value="false">
             Alcuni medicinali
           </b-radio>
           <medicine-picker v-model="herbs" :initial-value="herbs" v-if="!allHerbs"></medicine-picker>
@@ -67,10 +67,10 @@
       </div>
 
       <div class="block text-centered">
-        <a class="button is-primary">
+        <button class="button is-primary" @click="save">
           <span class="icon is-small"><i class="fas fa-check"></i></span>
           <span>Salva impostazioni</span>
-        </a>
+        </button>
       </div>
     </div>
 
@@ -80,6 +80,7 @@
 <script>
 import SimpleMessagePage from '@/components/SimpleMessagePage.vue'
 import MedicinePicker from '@/components/NotificationSettings/MedicinePicker.vue'
+import ToastMixin from '@/mixins/toast'
 
 export default {
   data () {
@@ -88,7 +89,7 @@ export default {
       by: [],
       herbs: [],
       allHerbs: true,
-      loading: false,
+      loading: true,
       telegramLinked: false
     }
   },
@@ -97,12 +98,29 @@ export default {
       this.loading = false
       this.when = resp.body.when
       this.by = resp.body.by
-      this.allHerbs = !(resp.body.notify_herbs instanceof Array)
-      this.herbs = !this.allHerbs ? resp.body.notify_herbs : []
+      this.allHerbs = !(resp.body.herbs instanceof Array)
+      this.herbs = !this.allHerbs ? resp.body.herbs : []
       this.telegramLinked = resp.body.telegram_linked
     })
   },
-  components: {SimpleMessagePage, MedicinePicker}
+  methods: {
+    save () {
+      this.loading = true
+      this.$http.post(this.apiUrl('api/v1/notification_settings'), {
+        when: this.when,
+        by: this.by,
+        herbs: this.allHerbs ? true : this.herbs.map(el => el.id)
+      }).then((resp) => {
+        this.loading = false
+        this.openSuccessToast('Impostazioni salvate correttamente!')
+      }, (resp) => {
+        this.loading = false
+        this.openApiErrorToast(resp)
+      })
+    }
+  },
+  components: {SimpleMessagePage, MedicinePicker},
+  mixins: [ToastMixin]
 }
 </script>
 
