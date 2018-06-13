@@ -64,18 +64,14 @@ async def post(request: Request, *, params, session: Session):
 
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
-            q = "UPDATE users SET {} WHERE id = %(user_id)s LIMIT 1".format(updates)
-            p = {
-                        "when": sum([NotificationWhen[k] for k in params["when"]]),
-                        "by": sum([NotificationBy[k] for k in params["by"]]),
-                        "user_id": session.user_id,
-                        "notify_all": "herbs" in params and type(params["herbs"]) is bool
-                }
-            logging.debug(q)
-            logging.debug(p)
             await cur.execute(
-                q,
-                p
+                "UPDATE users SET {} WHERE id = %(user_id)s LIMIT 1".format(updates),
+                {
+                    "when": sum([NotificationWhen[k] for k in params["when"]]),
+                    "by": sum([NotificationBy[k] for k in params["by"]]),
+                    "user_id": session.user_id,
+                    "notify_all": "herbs" in params and type(params["herbs"]) is bool
+                }
             )
             if "herbs" in params:
                 await cur.execute("DELETE FROM notify_herbs WHERE user_id = %s", (session.user_id,))
