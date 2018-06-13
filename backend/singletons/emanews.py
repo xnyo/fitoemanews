@@ -109,7 +109,8 @@ class EmaNews:
 
         :return:
         """
-        from api.handlers import ping, zxcvbn_strength, user, activate, login, logout, herbs, notification_settings
+        from api.handlers import ping, zxcvbn_strength, user, activate, login, logout, herbs, notification_settings, \
+            telegram
         self.app: web.Application() = web.Application()
         self.app.add_routes([
             web.get("/api/v1/ping", ping.handle),
@@ -121,7 +122,8 @@ class EmaNews:
             web.post("/api/v1/logout", logout.handle),
             web.get("/api/v1/herbs", herbs.handle),
             web.get("/api/v1/notification_settings", notification_settings.get),
-            web.post("/api/v1/notification_settings", notification_settings.post)
+            web.post("/api/v1/notification_settings", notification_settings.post),
+            web.get("/api/v1/telegram", telegram.get),
         ])
 
     def initialize_scheduler(self):

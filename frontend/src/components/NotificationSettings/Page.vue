@@ -40,12 +40,12 @@
       </div>
       <div class="block text-centered" v-else>
         <div class="field">
-          <a class="button is-small is-success">
+          <button class="button is-small is-success" @click="isTelegramLinkModalActive = true">
             <span class="icon is-small">
               <i class="fas fa-paper-plane"></i>
             </span>
             <span>Collega account Telegram</span>
-          </a>
+          </button>
         </div>
       </div>
 
@@ -74,12 +74,17 @@
       </div>
     </div>
 
+    <b-modal :active.sync="isTelegramLinkModalActive" has-modal-card>
+      <telegram-link-form></telegram-link-form>
+    </b-modal>
+
   </div>
 </template>
 
 <script>
 import SimpleMessagePage from '@/components/SimpleMessagePage.vue'
 import MedicinePicker from '@/components/NotificationSettings/MedicinePicker.vue'
+import TelegramLinkForm from '@/components/NotificationSettings/TelegramLinkForm.vue'
 import ToastMixin from '@/mixins/toast'
 
 export default {
@@ -90,7 +95,8 @@ export default {
       herbs: [],
       allHerbs: true,
       loading: true,
-      telegramLinked: false
+      telegramLinked: false,
+      isTelegramLinkModalActive: false
     }
   },
   mounted () {
@@ -119,7 +125,7 @@ export default {
       })
     }
   },
-  components: {SimpleMessagePage, MedicinePicker},
+  components: {SimpleMessagePage, MedicinePicker, TelegramLinkForm},
   mixins: [ToastMixin]
 }
 </script>

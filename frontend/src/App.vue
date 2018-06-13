@@ -99,6 +99,10 @@ export default {
     text-decoration: none !important;
   }
 
+  .not-visible {
+    visibility: hidden;
+  }
+
   @media only screen and (max-width: 991px) {
     .form-container {
       width: 90%;
