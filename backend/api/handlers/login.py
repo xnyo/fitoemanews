@@ -37,5 +37,5 @@ async def handle(request: Request, *, params):
     resp = web.json_response({
         "message": "ok"
     })
-    resp.set_cookie("session", session.token, max_age=Session.SESSION_EXPIRE_TIME)  #, secure=True)
+    resp.set_cookie("session", session.token, max_age=Session.SESSION_EXPIRE_TIME)  # , secure=True)
     return resp

@@ -1,11 +1,10 @@
 import logging
-from collections import namedtuple
-from typing import Sequence, List
+from typing import List
 
 from aiohttp import web
 from aiohttp.web_request import Request
 from aiomysql import SSDictCursor
-from schema import Optional, And, Use, Or
+from schema import Optional, And
 
 import api
 from api.schema import BooleanString, PositiveInteger, StrippedString

@@ -5,9 +5,7 @@ import pytest
 from aiohttp import web
 
 import tests.unit_api.base
-
 import tests.unit_api.errors
-from api.sessions import SessionFactory
 from migrator.migrator import Migrator
 from singletons.config import Config
 from singletons.emanews import EmaNews
