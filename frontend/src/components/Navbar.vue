@@ -25,7 +25,7 @@
             </span>
             <span>Impost. notifiche</span>
           </a>
-          <a class="navbar-item">
+          <a class="navbar-item" @click="$router.push('/api_keys')">
             <span class="icon has-white-text">
               <i class="fas fa-key"></i>
             </span>

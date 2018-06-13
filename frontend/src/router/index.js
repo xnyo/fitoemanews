@@ -7,6 +7,7 @@ const Login = () => import(/* webpackChunkName: 'login' */ '@/components/Login')
 const SignUp = () => import(/* webpackChunkName: 'sign-up' */ '@/components/SignUp/Page')
 const Activate = () => import(/* webpackChunkName: 'sign-up-activate' */ '@/components/SignUp/ActivatePage')
 const NotificationSettings = () => import(/* webpackChunkName: 'notification-settings' */ '@/components/NotificationSettings/Page')
+const ApiKeys = () => import(/* webpackChunkName: 'api-keys' */ '@/components/ApiKeys/Page')
 
 Vue.use(Router)
 
@@ -56,6 +57,15 @@ const router = new Router({
         protected: true,
         title: 'Impostazioni notifiche',
         subtitle: 'Scegli quando essere notificato da EmaNews'
+      }
+    }, {
+      path: '/api_keys',
+      name: 'ApiKeys',
+      component: ApiKeys,
+      meta: {
+        protected: true,
+        title: 'API Keys',
+        subtitle: 'Usa i dati forniti da EmaNews fuori dal nostro sito'
       }
     }
   ]
