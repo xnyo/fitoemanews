@@ -6,6 +6,7 @@ from schema import And, Use
 from zxcvbn import zxcvbn
 
 import api
+from api.schema import StrippedString
 from api.sessions import Session
 from constants.privileges import Privileges
 from exceptions.api import ConflictError
@@ -17,26 +18,22 @@ from utils import general, gravatar
 @api.guest_only
 @api.args({
     "name": And(
-        str,
-        Use(lambda x: x.strip()),
+        StrippedString,
         lambda x: 2 <= len(x) <= 64,
         error="Il nome deve essere compreso tra 2 e 64 caratteri"
     ),
     "surname": And(
-        str,
-        Use(lambda x: x.strip()),
+        StrippedString,
         lambda x: 2 <= len(x) <= 64,
         error="Il cognome deve essere compreso tra 2 e 64 caratteri"
     ),
     "email": And(
-        str,
-        Use(lambda x: x.strip()),
+        StrippedString,
         lambda x: validate_email(x)["email"],
         error="Indirizzo email non valido"
     ),
     "password": And(
-        str,
-        Use(lambda x: x.strip()),
+        StrippedString,
         lambda x: ((100 * zxcvbn(x)["score"]) / 4) >= 50,
         Use(lambda x: x.encode()),
         error="La password scelta è troppo debole"

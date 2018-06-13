@@ -37,12 +37,23 @@ async def test_sign_up_missing_some_fields(cli):
 
 
 async def test_sign_up_all_fields_empty_strings(cli):
-    fields = ["name", "surname", "email", "password"]
-    for field in fields:
-        resp = await cli.post("/api/v1/user", json={
-            field: ""
-        })
-        assert resp.status == 400
+    resp = await cli.post("/api/v1/user", json={
+        "name": "",
+        "surname": "",
+        "email": "",
+        "password": ""
+    })
+    assert resp.status == 400
+
+
+async def test_sign_up_all_fields_spaces(cli):
+    resp = await cli.post("/api/v1/user", json={
+        "name": " ",
+        "surname": " ",
+        "email": " ",
+        "password": " "
+    })
+    assert resp.status == 400
 
 
 async def test_sign_up_name_too_short(cli):

@@ -8,7 +8,7 @@ import api
 
 @api.base
 @api.args({
-    "input": And(str, lambda x: x)
+    "input": And(str, lambda x: x, error="Input non valido")
 })
 async def handle(request: Request, *, params):
     result = zxcvbn(params["input"])
