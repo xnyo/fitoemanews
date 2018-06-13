@@ -77,7 +77,7 @@ module.exports = new Promise((resolve, reject) => {
       // publish the new Port, necessary for e2e tests
       process.env.PORT = port
       // add port to devServer config
-      devWebpackConfig.devServer.host = '127.0.0.1'
+      devWebpackConfig.devServer.host = '0.0.0.0'
       devWebpackConfig.devServer.port = port
 
       // Add FriendlyErrorsPlugin
