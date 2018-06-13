@@ -9,7 +9,7 @@ async def test_zxcvbn_empty_input(cli):
     resp = await cli.get("/api/v1/zxcvbn?input=")
     assert resp.status == 400
     data = await resp.json()
-    assert data["message"].startswith("Key 'input' error:")     # schema lambda failure
+    assert data["message"] == "Input non valido"
 
 
 async def test_zxcvbn_strengths(cli):
