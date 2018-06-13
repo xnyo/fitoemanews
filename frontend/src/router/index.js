@@ -93,7 +93,7 @@ router.afterEach((to, from) => {
     subtitle: to.meta.subtitle,
     colour: to.meta.colour
   })
-  document.title = `Emanews - ${to.meta.title}`
+  document.title = `EmaNews - ${to.meta.title}`
 })
 
 export default router

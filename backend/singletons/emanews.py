@@ -114,7 +114,7 @@ class EmaNews:
         :return:
         """
         from api.handlers import ping, zxcvbn_strength, user, activate, login, logout, herbs, notification_settings, \
-            telegram
+            telegram, api_key
         self.app: web.Application() = web.Application()
         self.app.add_routes([
             web.get("/api/v1/ping", ping.handle),
@@ -129,6 +129,9 @@ class EmaNews:
             web.post("/api/v1/notification_settings", notification_settings.post),
             web.get("/api/v1/telegram", telegram.get),
             web.delete("/api/v1/telegram", telegram.delete),
+            web.get("/api/v1/api_keys", api_key.get),
+            web.post("/api/v1/api_keys", api_key.post),
+            web.delete("/api/v1/api_keys/{id_}", api_key.delete),
         ])
 
     def initialize_scheduler(self):

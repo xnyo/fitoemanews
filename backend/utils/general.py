@@ -24,3 +24,15 @@ def md5(s: str) -> str:
     m = hashlib.md5()
     m.update(s.encode())
     return m.hexdigest()
+
+
+def sha512(s: str) -> str:
+    """
+    Ritorna l'hash sha512 di una stringa
+
+    :param s: stringa
+    :return: hash di `s`
+    """
+    m = hashlib.sha512()
+    m.update(s.encode())
+    return m.hexdigest()

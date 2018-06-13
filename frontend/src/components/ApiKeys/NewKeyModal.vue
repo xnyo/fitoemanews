@@ -9,7 +9,7 @@
           <div :class="{'not-visible': loading}">
             <section>
               <b-field label="Nome" :type="formData.name.type" :message="formData.name.message">
-                <b-input v-model="formData.name.value" @blur="checkEmptyField(formData.name)" placeholder="Un nome che identifichi la tua API Key"></b-input>
+                <b-input ref="input" v-model="formData.name.value" @blur="checkEmptyField(formData.name)" placeholder="Un nome che identifica la tua API Key"></b-input>
               </b-field>
             </section>
           </div>
@@ -55,6 +55,9 @@ export default {
       loading: false
     }
   },
+  mounted () {
+    this.$refs.input.$el.children[0].focus()
+  },
   methods: {
     submit () {
       if (!this.isFormDataValid) {
@@ -62,11 +65,14 @@ export default {
       }
 
       this.loading = true
-      this.$http.post(this.apiUrl('api/v1/tokens'), {
+      this.$http.post(this.apiUrl('api/v1/api_keys'), {
         name: this.formData.name.value
       }).then((resp) => {
-        this.openSuccessToast('API Key creata con successo!')
+        this.openSuccessToast('API Key creata!')
         this.$parent.close()
+        this.$emit('create', {
+          key: resp.body.key
+        })
       }, (resp) => {
         this.loading = false
         this.openApiErrorToast(resp)
