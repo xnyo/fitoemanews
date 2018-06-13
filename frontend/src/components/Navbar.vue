@@ -13,7 +13,9 @@
       <div class="navbar-item has-dropdown is-hoverable" v-if="$store.getters.loggedIn">
         <a class="navbar-link">
           <img :src="gravatarUrl" class="avatar">
-          {{ $store.state.userInfo.name }} {{ $store.state.userInfo.surname }}
+          <span>
+            {{ $store.state.userInfo.name }} {{ $store.state.userInfo.surname }}
+          </span>
         </a>
 
         <div class="navbar-dropdown is-right">

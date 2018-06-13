@@ -103,6 +103,9 @@ export default {
     .form-container {
       width: 90%;
     }
+    .navbar-item {
+      color: white !important;
+    }
   }
 
   @media only screen and (min-width: 992px) and (max-width: 1599px) {
@@ -150,6 +153,7 @@ export default {
   $info: #8c67ef;
   $info-invert: findColorInvert($info);
   $dark-blue: #3273dc;
+  $darker-blue: darken($dark-blue, 5%);
   $dark-blue-invert: findColorInvert($dark-blue);
 
   // Setup $colors to use as bulma classes (e.g. 'is-twitter')
@@ -170,6 +174,20 @@ export default {
   $link: $primary;
   $link-invert: $primary-invert;
   $link-focus-border: $primary;
+
+  @media only screen and (max-width: 1087px) {
+    .navbar-link>img, .navbar-link>span {
+      vertical-align: middle;
+    }
+
+    .navbar-item:not(.has-dropdown):hover, .navbar-link:hover {
+      // color: white !important;
+      background-color: $darker-blue !important;
+    }
+    .navbar-item, .navbar-link {
+      color: white !important;
+    }
+  }
 
   // Import Bulma and Buefy styles
   @import "~bulma";
