@@ -35,6 +35,8 @@ class Config:
             "DB_POOL_MIN_SIZE": config("DB_POOL_MIN_SIZE", default="1", cast=int),
             "DB_POOL_MAX_SIZE": config("DB_POOL_MAX_SIZE", default="8", cast=int),
 
+            "TELEGRAM_TOKEN": config("TELEGRAM_TOKEN", default=None),
+
             "DEBUG": config("DEBUG", default="false", cast=bool),
         }
 

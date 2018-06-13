@@ -34,17 +34,23 @@
         </b-checkbox>
       </div>
       <div class="field" v-if="telegramLinked">
-        <b-checkbox v-model="by" native-value="EMAIL">
-          Telegram
+        <b-checkbox v-model="by" native-value="TELEGRAM">
+          <span>
+            Telegram
+          </span>
         </b-checkbox>
       </div>
-      <div class="block text-centered" v-else>
+      <div class="block text-centered">
         <div class="field">
-          <button class="button is-small is-success" @click="isTelegramLinkModalActive = true">
+          <button
+            class="button is-small"
+            :class="{'is-success': !telegramLinked, 'is-danger': telegramLinked}"
+            @click="onLinkUnlinkTelegramButtonClick"
+          >
             <span class="icon is-small">
-              <i class="fas fa-paper-plane"></i>
+              <i class="fas" :class="{'fa-paper-plane': !telegramLinked, 'fa-unlink': telegramLinked}"></i>
             </span>
-            <span>Collega account Telegram</span>
+            <span>{{ telegramLinked ? 'Scollega' : 'Collega' }} account Telegram</span>
           </button>
         </div>
       </div>
@@ -74,7 +80,7 @@
       </div>
     </div>
 
-    <b-modal :active.sync="isTelegramLinkModalActive" has-modal-card>
+    <b-modal :active.sync="isTelegramLinkModalActive" @close="load" has-modal-card>
       <telegram-link-form></telegram-link-form>
     </b-modal>
 
@@ -100,16 +106,20 @@ export default {
     }
   },
   mounted () {
-    this.$http.get(this.apiUrl('api/v1/notification_settings')).then((resp) => {
-      this.loading = false
-      this.when = resp.body.when
-      this.by = resp.body.by
-      this.allHerbs = !(resp.body.herbs instanceof Array)
-      this.herbs = !this.allHerbs ? resp.body.herbs : []
-      this.telegramLinked = resp.body.telegram_linked
-    })
+    this.load()
   },
   methods: {
+    load () {
+      this.loading = true
+      this.$http.get(this.apiUrl('api/v1/notification_settings')).then((resp) => {
+        this.loading = false
+        this.when = resp.body.when
+        this.by = resp.body.by
+        this.allHerbs = !(resp.body.herbs instanceof Array)
+        this.herbs = !this.allHerbs ? resp.body.herbs : []
+        this.telegramLinked = resp.body.telegram_linked
+      })
+    },
     save () {
       this.loading = true
       this.$http.post(this.apiUrl('api/v1/notification_settings'), {
@@ -119,10 +129,24 @@ export default {
       }).then((resp) => {
         this.loading = false
         this.openSuccessToast('Impostazioni salvate correttamente!')
+        this.load()
       }, (resp) => {
         this.loading = false
         this.openApiErrorToast(resp)
       })
+    },
+    onLinkUnlinkTelegramButtonClick () {
+      if (!this.telegramLinked) {
+        this.isTelegramLinkModalActive = true
+      } else {
+        this.loading = true
+        this.$http.delete(this.apiUrl('api/v1/telegram')).then((resp) => {
+          this.openSuccessToast('Account telegram scollegato con successo!')
+          this.load()
+        }, (resp) => {
+          this.openApiErrorToast(resp)
+        })
+      }
     }
   },
   components: {SimpleMessagePage, MedicinePicker, TelegramLinkForm},

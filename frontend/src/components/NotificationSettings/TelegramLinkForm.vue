@@ -18,7 +18,7 @@
               ></v-lazy-image>
               <p>Se non hai la possibilità di scannerizzare il QR code ed hai Telegram installato su questo dispositivo, puoi collegare il tuo account cliccando sul pulsante in basso:</p>
               <div class="text-centered">
-                <a :href="telegramLink" class="button is-small is-primary">
+                <a target="_blank" :href="telegramLink" class="button is-small is-primary">
                   <span class="icon is-small">
                     <i class="fas fa-link"></i>
                   </span>
@@ -50,20 +50,33 @@ export default {
     return {
       loading: true,
       done: false,
-      telegramLink: ''
+      telegramLink: '',
+      interval: null
     }
   },
   mounted () {
-    this.$http.get(this.apiUrl('api/v1/telegram')).then((resp) => {
-      this.loading = false
-      this.telegramLink = resp.body.telegram_link
-    }, (resp) => {
-      if (resp.status === 409) {
-        this.done = true
-      } else {
-        this.openApiErrorToast(resp)
-      }
-    })
+    this.interval = setInterval(this.apiCall, 4000)
+    this.apiCall()
+  },
+  destroyed () {
+    if (this.interval !== null) {
+      clearInterval(this.interval)
+    }
+  },
+  methods: {
+    apiCall () {
+      this.$http.get(this.apiUrl('api/v1/telegram')).then((resp) => {
+        this.loading = false
+        this.telegramLink = resp.body.telegram_link
+      }, (resp) => {
+        if (resp.status === 406) {
+          this.loading = false
+          this.done = true
+        } else {
+          this.openApiErrorToast(resp)
+        }
+      })
+    }
   },
   computed: {
     qrImage () { return `https://qrpi.nyodev.xyz/?data=${this.telegramLink}` }

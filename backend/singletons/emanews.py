@@ -6,6 +6,7 @@ import aiomysql
 import aioredis
 from aiohttp import web
 from aiomysql import DictCursor
+from aiotg import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from migrator.migrator import Migrator
@@ -20,7 +21,7 @@ class EmaNews:
     logger = logging.getLogger("emanews")
 
     def __init__(
-        self,
+        self, *,
         db_host: str = None, db_username: str = None,
         db_password: str = None, db_database: str = None,
         db_port: int = 3306, db_pool_minsize: int=None,
@@ -28,6 +29,7 @@ class EmaNews:
         redis_database: int = 0, redis_password: str = None,
         redis_pool_size: int = 8, db_pool_maxsize: int=None,
         web_host: Optional[str]=None, web_port: Optional[int]=None,
+        telegram_token: str=None,
         debug: bool = False
     ):
         self.db_host: str = db_host
@@ -45,6 +47,7 @@ class EmaNews:
         self.debug: bool = debug
         self.web_host: str = web_host
         self.web_port: int = web_port
+        self.telegram_token: str = telegram_token
 
         logging.basicConfig(level=logging.DEBUG if self.debug else logging.INFO)
 
@@ -53,6 +56,7 @@ class EmaNews:
         self.db: aiomysql.Pool = None
         self.redis: aioredis.Redis = None
         self.scheduler: AsyncIOScheduler = None
+        self.bot: Bot = None
 
     async def connect_db(self):
         """
@@ -124,6 +128,7 @@ class EmaNews:
             web.get("/api/v1/notification_settings", notification_settings.get),
             web.post("/api/v1/notification_settings", notification_settings.post),
             web.get("/api/v1/telegram", telegram.get),
+            web.delete("/api/v1/telegram", telegram.delete),
         ])
 
     def initialize_scheduler(self):
@@ -135,18 +140,32 @@ class EmaNews:
         self.scheduler = AsyncIOScheduler()
         from jobs import scraper
 
+    def initialize_bot(self):
+        """
+        Inizializza il bot di telegram
+
+        :return:
+        """
+        self.bot = Bot(api_token=self.telegram_token)
+        from bot import start
+
     def initialize(self):
         """
         Inizializza EmaNews
 
         :return:
         """
+        if self._initialized:
+            raise RuntimeError("EmaNews already initialized")
         loop = asyncio.get_event_loop()
 
         self.logger.info("Initializing fitoemanews")
 
         # Registra route aiohttp
         self.initialize_web_app()
+
+        # Crea bot
+        self.initialize_bot()
 
         # Connetti al db
         loop.run_until_complete(self.connect_db())
@@ -172,9 +191,41 @@ class EmaNews:
             self.initialize()
         self.scheduler.start()
         self.app.on_cleanup.append(self.dispose)
-        self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
+
+        # Crea runner aiohttp, per avviare insieme sia aiohttp che aiotg
+        runner = web.AppRunner(self.app)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(runner.setup())
+        site = web.TCPSite(runner, port=self.web_port)
         logging.getLogger("aiohttp.access").setLevel(logging.DEBUG if self.debug else logging.CRITICAL)
+
         try:
-            web.run_app(self.app, port=self.web_port, print=None)
+            # aiohttp
+            self.logger.info("Web API listening on {}:{}".format(self.web_host, self.web_port))
+            asyncio.ensure_future(site.start())
+
+            # aiotg, se necessario
+            if self.is_bot_enabled:
+                self.logger.info("Starting Telegram bot")
+                bot_loop = asyncio.ensure_future(self.bot.loop())
+            else:
+                self.logger.warning("Telegram bot is disabled")
+
+            # Avvia IOLoop
+            loop.run_forever()
+        except KeyboardInterrupt:
+            self.logger.info("Interrupted by user")
         finally:
+            # Chiudi loop web e aiotg
+            if self.is_bot_enabled:
+                bot_loop.cancel()
+                self.bot.stop()
+                loop.run_until_complete(self.bot.session.close())
+            loop.run_until_complete(runner.cleanup())
+            loop.stop()
+            loop.close()
             self.logger.info("Goodbye!")
+
+    @property
+    def is_bot_enabled(self) -> bool:
+        return self.telegram_token is not None

@@ -23,6 +23,7 @@ def main():
         redis_password=c["REDIS_PASSWORD"],
         redis_database=c["REDIS_DATABASE"],
         redis_pool_size=c["REDIS_POOL_SIZE"],
+        telegram_token=c["TELEGRAM_TOKEN"]
     )
     if len(sys.argv) >= 2 and sys.argv[1] == "scrape":
         EmaNews().initialize()

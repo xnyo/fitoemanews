@@ -54,3 +54,15 @@ async def get(request: Request, *, session: Session):
     return web.json_response({
         "telegram_link": "https://telegram.me/{}?start={}".format("emanewsbot", token)
     })
+
+
+@api.base
+@api.protected()
+async def delete(request: Request, *, session: Session):
+    async with EmaNews().db.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("UPDATE users SET telegram_user_id = NULL WHERE id = %s LIMIT 1", (session.user_id,))
+            await conn.commit()
+    return web.json_response({
+        "message": "ok"
+    })
