@@ -1,12 +1,14 @@
 <template>
   <div class='medicinepicker'>
     <b-taginput
-        v-model="chosenMedicines"
+        v-model="value"
         :data="filteredMedicines"
         autocomplete
         placeholder="Inserisci il nome di un medicinale"
         field="latin_name"
-        @typing="getMedicines">
+        @typing="getMedicines"
+        @input="$emit('input', $event)"
+      >
         <template slot-scope="props">
           <div>
             <span v-html="highlightMatch(props.option.latin_name, searchQuery)"></span>
@@ -27,9 +29,13 @@ export default {
   data () {
     return {
       filteredMedicines: [],
-      chosenMedicines: [],
+      value: [],
       searchQuery: ''
     }
+  },
+  props: ['initialValue'],
+  mounted () {
+    this.value = this.initialValue
   },
   methods: {
     getMedicines: _.debounce(function (text) {
@@ -44,7 +50,7 @@ export default {
         this.filteredMedicines = resp.body.herbs.filter(
           el => {
             let found = false
-            this.chosenMedicines.every((chosenMedicine) => {
+            this.value.every((chosenMedicine) => {
               if (chosenMedicine.id === el.id) {
                 found = true
                 return false
