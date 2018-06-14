@@ -10,3 +10,4 @@ zxcvbn==4.4.26
 email-validator==1.0.3
 bcrypt==3.1.4
 aioredis==1.1.0
+aiotg==0.9.9
