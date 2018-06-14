@@ -4,6 +4,10 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/artful64"
   config.vm.network "private_network", ip: "172.16.10.100"
+
+  # Sync .gitconfig and ssh keys in /home/vagrant to make git work in the VM
+  config.vm.provision "file", run: "always", source: "~/.gitconfig", destination: "~/.gitconfig"
+  config.vm.provision "file", run: "always", source: "~/.ssh", destination: "~/.ssh"
   
   scripts = []
   Dir.glob("vagrant/provisioners/*_*.sh").each do |file_path|

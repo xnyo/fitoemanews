@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 echo "=> Starting webpack server"
 cd /vagrant/frontend
 npm run dev &
