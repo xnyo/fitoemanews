@@ -17,7 +17,37 @@ class SessionError(Exception):
 
 class Session:
     """
-    Sessione web
+    Base class sessioni
+    """
+    logger = logging.getLogger("session")
+
+    def __init__(self, user_id: int):
+        """
+        Inizializza una nuova sessione generica.
+
+        :param user_id: user id
+        """
+        self.user_id = user_id
+
+
+class ApiKeySession(Session):
+    """
+    Sessione legata ad una api key
+    """
+    def __init__(self, user_id: int, hashed_key: str):
+        """
+        Inizializza una nuova sessione legata ad una api key
+
+        :param user_id: user id
+        :param hashed_key: hash dell'api key (SHA512)
+        """
+        super(ApiKeySession, self).__init__(user_id)
+        self.hashed_key = hashed_key
+
+
+class RedisSession(Session):
+    """
+    Sessione salvata in redis e legata ad un cookie di sessione
     """
     # Secondi prima dello scadere della sessione
     SESSION_EXPIRE_TIME = 86400
@@ -32,7 +62,6 @@ class Session:
             }
         ),
     )
-    logger = logging.getLogger("session")
 
     def __init__(self, user_id: int, token: Optional[str]=None, data: Optional[Dict[str, Any]]=None):
         """
@@ -47,6 +76,7 @@ class Session:
         :param data: dati della sessione.
         :type data: Optional[Dict[str, Any]]
         """
+        super(RedisSession, self).__init__(user_id)
         self.user_id: int = user_id
         self.token: Optional[str] = token
         self.session_data: Dict[str, Any] = data if data is not None else {}
@@ -94,15 +124,18 @@ class Session:
         await EmaNews().redis.set(
             "emanews:session:{}".format(self.token),
             json.dumps(self.store_data),
-            expire=Session.SESSION_EXPIRE_TIME
+            expire=RedisSession.SESSION_EXPIRE_TIME
         )
 
 
 class SessionFactory:
+    """
+    Factory per la creazione di sessioni
+    """
     logger = logging.getLogger("session.factory")
 
     @classmethod
-    async def load_from_redis(cls, token: str) -> Session:
+    async def load_from_redis(cls, token: str) -> RedisSession:
         """
         Carica una sessione da redis.
 
@@ -117,17 +150,40 @@ class SessionFactory:
         if not session_data:
             raise SessionError("Invalid session token")
         try:
-            session_data = Session.STORE_SCHEMA.validate(session_data.decode())
+            session_data = RedisSession.STORE_SCHEMA.validate(session_data.decode())
         except SchemaError as e:
             raise SessionError("Invalid store schema: {}".format(e))
-        return Session(
+        return RedisSession(
             token=token,
             user_id=session_data["user_id"],
             data=session_data["data"]
         )
 
     @classmethod
-    async def new_session(cls, user_id: int, data: Optional[Dict[str, Any]]=None) -> Session:
+    async def load_from_api_key(cls, key: str, already_hashed: bool=False) -> ApiKeySession:
+        """
+        Ritorna un oggetto `ApiKeySession` in base al valore di `key`
+
+        :param key: api key. In chiaro o hash della key.
+        :param already_hashed: se `True`, `key` è l'hash SHA512 della api key, altrimenti è in chiaro.
+        :return: oggetto `ApiKeySession` che rappresenta la sessione dell'utente
+        :raise: `SessionError` se la api key non è presente nel database
+        """
+        cls.logger.debug("Loading session for api key {}".format(key))
+        if not already_hashed:
+            hashed_key = general.sha512(key)
+        else:
+            hashed_key = key
+        async with EmaNews().db.acquire() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT user_id FROM api_keys WHERE key_hash = %s LIMIT 1", (hashed_key,))
+                key_record = await cur.fetchone()
+                if key_record is None:
+                    raise SessionError("Invalid api key")
+                return ApiKeySession(key_record["user_id"], hashed_key)
+
+    @classmethod
+    async def new_redis_session(cls, user_id: int, data: Optional[Dict[str, Any]]=None) -> RedisSession:
         """
         Crea una nuova sessione per un utente, con token casuale e la salva in redis.
 
@@ -138,7 +194,7 @@ class SessionFactory:
         :return: oggetto sessione
         :rtype: Session
         """
-        s = Session(user_id, data=data)
+        s = RedisSession(user_id, data=data)
         await s.generate_valid_token()
         await s.store()
         return s

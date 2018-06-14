@@ -4,7 +4,7 @@ from aiohttp.web_request import Request
 from schema import And, Use
 
 import api
-from api.sessions import Session, SessionFactory
+from api.sessions import SessionFactory, RedisSession
 from constants.privileges import Privileges
 from exceptions.api import NotFoundError, ForbiddenError
 from singletons.emanews import EmaNews
@@ -33,9 +33,9 @@ async def handle(request: Request, *, params):
                                      "di posta elettronica e clicca sul link che hai ricevuto per verificare "
                                      "il tuo account.")
 
-    session = await SessionFactory.new_session(db_user["id"])
+    session = await SessionFactory.new_redis_session(db_user["id"])
     resp = web.json_response({
         "message": "ok"
     })
-    resp.set_cookie("session", session.token, max_age=Session.SESSION_EXPIRE_TIME)  # , secure=True)
+    resp.set_cookie("session", session.token, max_age=RedisSession.SESSION_EXPIRE_TIME)  # , secure=True)
     return resp

@@ -190,25 +190,48 @@ def protected(required_privileges: Privileges=Privileges.NORMAL) -> Callable:
     """
     def decorator(f: Callable) -> Callable:
         async def wrapper(request: web.Request, *args, **kwargs) -> Response:
-            session_token = request.cookies.get("session")
-            if not session_token:
+            # Prendi cookie di sessione. None se non presente.
+            session_token_cookie = request.cookies.get("session")
+
+            # Prendi api key da header `X-EmaNews-Token` o parametro GET `apikey`.
+            # None se non presente.
+            api_key = next((x for x in (
+                request.headers["X-EmaNews-Token"].strip() if "X-EmaNews-Token" in request.headers else None,
+                request.query["apikey"].strip() if "apikey" in request.query else None
+            ) if x is not None and x), None)
+
+            if session_token_cookie is not None:
+                # Cookie di sessione presente, prova a caricare la sessione da redis
+                try:
+                    session = await sessions.SessionFactory.load_from_redis(session_token_cookie)
+                except sessions.SessionError as e:
+                    # Errore durante il caricamento della sessione, cancellala
+                    await sessions.SessionFactory.delete_from_redis(session_token_cookie)
+                    # Rilancia l'eccezione per inviare l'errore al client
+                    raise api.ForceLogoutError(e)
+            elif api_key is not None:
+                # Api key presente in header/querystring
+                try:
+                    # Carica sessione
+                    session = await sessions.SessionFactory.load_from_api_key(api_key)
+                except sessions.SessionError as e:
+                    # API key non valida
+                    raise api.ForbiddenError(e)
+            else:
+                # Cookie sessione e api key mancante!
                 raise api.NotAuthenticatedError()
 
-            try:
-                session = await sessions.SessionFactory.load_from_redis(session_token)
+            # Controllo privilegi utente in base alla sessione caricata
+            async with EmaNews().db.acquire() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (session.user_id,))
+                    privs = await cur.fetchone()
+                    if not privs:
+                        raise sessions.SessionError("User not found")
+                    if not (privs["privileges"] & required_privileges):
+                        raise api.ForbiddenError("Insufficient privileges")
 
-                async with EmaNews().db.acquire() as conn:
-                    async with conn.cursor() as cur:
-                        await cur.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (session.user_id,))
-                        privs = await cur.fetchone()
-                        if not privs:
-                            raise sessions.SessionError("User not found")
-                        if not (privs["privileges"] & required_privileges):
-                            raise api.ForbiddenError("Insufficient privileges")
-            except sessions.SessionError as e:
-                await sessions.SessionFactory.delete_from_redis(session_token)
-                raise api.ForceLogoutError(e)
-
+            # Sessione creata e privilegi corretti, chiama l'api handler
             return await f(request, *args, session=session, **kwargs)
         return wrapper
     return decorator
