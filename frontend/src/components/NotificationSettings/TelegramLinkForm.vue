@@ -9,7 +9,7 @@
           <div :class="{'not-visible': loading}">
             <div v-if="!done">
               <p>
-                Scannerizza questo QR code con il tuo smartpphone per collegare il tuo account EmaNews con il tuo account Telegram e ricevere le notifiche dal nostro bot.
+                Scannerizza questo QR code con il tuo smartphone per collegare il tuo account EmaNews con il tuo account Telegram e ricevere le notifiche dal nostro bot.
               </p>
               <v-lazy-image
                 id='qr'

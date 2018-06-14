@@ -28,6 +28,13 @@ async def test_protected_invalid_api_token(cli):
     assert resp.status == 403
 
 
+async def test_protected_logged_in_api_key_get_parameter(cli):
+    resp = await cli.get("/api/v1/herbs", params={
+        "apikey": "testtoken"
+    })
+    assert resp.status == 200
+
+
 async def test_protected_no_cookie_no_key(cli):
     resp = await cli.get("/api/v1/herbs")
     assert resp.status == 401
