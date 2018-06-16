@@ -6,9 +6,10 @@ from typing import Callable, Union
 from aiohttp import web
 from aiohttp.web_response import Response
 from multidict import MultiDict
-from schema import Schema, SchemaError, And, Use
+from schema import Schema, SchemaError, And, Use, Optional
 
 from api import sessions
+from api.schema import StrippedString
 from constants.privileges import Privileges
 from exceptions import api
 from singletons.emanews import EmaNews
@@ -108,7 +109,7 @@ def errors(f: Callable) -> Callable:
 
             # Se l'api è in debug mode, invia lo stacktrace al client
             # altrimenti mostra un messaggio generico
-            if EmaNews().debug:
+            if EmaNews().debug: # pragma: nocover
                 msg = readable_exception(traceback.format_exc(), "Unhandled internal server error")
             else:
                 msg = "Internal server error."
@@ -169,7 +170,7 @@ def args(schema_: Union[Schema, dict]) -> Callable:
 
             # Verifica schema
             try:
-                data = schema.validate(dict(current_args))
+                data = schema.validate({k: v for k, v in dict(current_args).items() if k != "apikey"})
             except SchemaError as e:
                 raise api.InvalidArgumentsError(e)
 
@@ -204,7 +205,7 @@ def protected(required_privileges: Privileges=Privileges.NORMAL) -> Callable:
                 # Cookie di sessione presente, prova a caricare la sessione da redis
                 try:
                     session = await sessions.SessionFactory.load_from_redis(session_token_cookie)
-                except sessions.SessionError as e:
+                except sessions.SessionError as e:  # pragma: nocover
                     # Errore durante il caricamento della sessione, cancellala
                     await sessions.SessionFactory.delete_from_redis(session_token_cookie)
                     # Rilancia l'eccezione per inviare l'errore al client
@@ -226,9 +227,9 @@ def protected(required_privileges: Privileges=Privileges.NORMAL) -> Callable:
                 async with conn.cursor() as cur:
                     await cur.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (session.user_id,))
                     privs = await cur.fetchone()
-                    if not privs:
+                    if not privs:   # pragma: nocover
                         raise sessions.SessionError("User not found")
-                    if not (privs["privileges"] & required_privileges):
+                    if not (privs["privileges"] & required_privileges): # pragma: nocover
                         raise api.ForbiddenError("Insufficient privileges")
 
             # Sessione creata e privilegi corretti, chiama l'api handler

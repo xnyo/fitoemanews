@@ -1,0 +1,6 @@
+[run]
+omit=*/.pyenv/*
+concurrency=multiprocessing
+
+[html]
+directory = coverage_html_report
