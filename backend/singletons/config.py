@@ -37,6 +37,10 @@ class Config:
 
             "TELEGRAM_TOKEN": config("TELEGRAM_TOKEN", default=None),
 
+            "MAILGUN_DOMAIN": config("MAILGUN_DOMAIN", default=None),
+            "MAILGUN_KEY": config("MAILGUN_KEY", default=None),
+            "MAILGUN_DEFAULT_SENDER": config("MAILGUN_DEFAULT_SENDER", default=None),
+
             "DEBUG": config("DEBUG", default="false", cast=bool),
         }
 

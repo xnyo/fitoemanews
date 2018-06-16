@@ -62,3 +62,20 @@ async def test_login_already_logged_in(cli):
     assert resp.status == 403
     data = await resp.json()
     assert data["message"] == "You are already logged in"
+
+
+async def test_logout(cli):
+    await login(cli)
+    resp = await cli.get("/api/v1/herbs")
+    assert resp.status == 200
+    resp = await cli.post("/api/v1/logout")
+    assert resp.status == 200
+    resp = await cli.get("/api/v1/herbs")
+    assert resp.status == 401
+
+
+async def test_logout_api_key(cli):
+    resp = await cli.post("/api/v1/logout", params={
+        "apikey": "testtoken"
+    })
+    assert resp.status == 406

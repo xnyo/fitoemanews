@@ -10,6 +10,7 @@ from aiotg import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from migrator.migrator import Migrator
+from utils.mailgun import MailgunClient
 from utils.singletons import singleton
 
 
@@ -29,8 +30,9 @@ class EmaNews:
         redis_database: int = 0, redis_password: str = None,
         redis_pool_size: int = 8, db_pool_maxsize: int=None,
         web_host: Optional[str]=None, web_port: Optional[int]=None,
+        mailgun_client: MailgunClient=None,
         telegram_token: str=None,
-        debug: bool = False
+        debug: bool = False, loop=None
     ):
         self.db_host: str = db_host
         self.db_port: int = db_port
@@ -48,6 +50,7 @@ class EmaNews:
         self.web_host: str = web_host
         self.web_port: int = web_port
         self.telegram_token: str = telegram_token
+        self.mailgun_client: MailgunClient = mailgun_client
 
         logging.basicConfig(level=logging.DEBUG if self.debug else logging.INFO)
 
@@ -57,6 +60,7 @@ class EmaNews:
         self.redis: aioredis.Redis = None
         self.scheduler: AsyncIOScheduler = None
         self.bot: Bot = None
+        self.loop = loop if loop is not None else asyncio.get_event_loop()
 
     async def connect_db(self):
         """
@@ -140,7 +144,7 @@ class EmaNews:
 
         :return:
         """
-        self.scheduler = AsyncIOScheduler()
+        self.scheduler = AsyncIOScheduler(event_loop=self.loop)
         from jobs import scraper
 
     def initialize_bot(self):
@@ -158,7 +162,7 @@ class EmaNews:
 
         :return:
         """
-        if self._initialized:
+        if self._initialized:   # pragma: nocover
             raise RuntimeError("EmaNews already initialized")
         loop = asyncio.get_event_loop()
 
@@ -184,7 +188,7 @@ class EmaNews:
 
         self._initialized = True
 
-    def start(self):
+    def start(self):    # pragma: nocover
         """
         Inizializza (se necessario) e avvia EmaNews
 
@@ -197,8 +201,7 @@ class EmaNews:
 
         # Crea runner aiohttp, per avviare insieme sia aiohttp che aiotg
         runner = web.AppRunner(self.app)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(runner.setup())
+        self.loop.run_until_complete(runner.setup())
         site = web.TCPSite(runner, port=self.web_port)
         logging.getLogger("aiohttp.access").setLevel(logging.DEBUG if self.debug else logging.CRITICAL)
 
@@ -215,7 +218,7 @@ class EmaNews:
                 self.logger.warning("Telegram bot is disabled")
 
             # Avvia IOLoop
-            loop.run_forever()
+            self.loop.run_forever()
         except KeyboardInterrupt:
             self.logger.info("Interrupted by user")
         finally:
@@ -223,12 +226,12 @@ class EmaNews:
             if self.is_bot_enabled:
                 bot_loop.cancel()
                 self.bot.stop()
-                loop.run_until_complete(self.bot.session.close())
-            loop.run_until_complete(runner.cleanup())
-            loop.stop()
-            loop.close()
+                self.loop.run_until_complete(self.bot.session.close())
+            self.loop.run_until_complete(runner.cleanup())
+            self.loop.stop()
+            self.loop.close()
             self.logger.info("Goodbye!")
 
     @property
-    def is_bot_enabled(self) -> bool:
+    def is_bot_enabled(self) -> bool:   # pragma: nocover
         return self.telegram_token is not None
