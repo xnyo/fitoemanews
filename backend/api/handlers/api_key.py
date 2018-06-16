@@ -40,9 +40,7 @@ async def get(request: Request, *, session: Session):
         async with conn.cursor() as cur:
             await cur.execute("SELECT id, name FROM api_keys WHERE user_id = %s", (session.user_id,))
             results = await cur.fetchall()
-    return web.json_response({
-        "keys": results
-    })
+    return web.json_response(results)
 
 
 @api.base

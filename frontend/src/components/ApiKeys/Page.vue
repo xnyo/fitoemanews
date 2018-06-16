@@ -64,7 +64,7 @@ export default {
     load () {
       this.loading = true
       this.$http.get(this.apiUrl('api/v1/api_keys')).then((resp) => {
-        this.apiKeys = resp.body.keys
+        this.apiKeys = resp.body
         this.loading = false
       })
     },
