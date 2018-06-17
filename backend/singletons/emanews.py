@@ -34,6 +34,28 @@ class EmaNews:
         telegram_token: str=None,
         debug: bool = False, loop=None
     ):
+        """
+        Inizializza singleton EmaNews
+
+        :param db_host: host database
+        :param db_username: username database
+        :param db_password: password database
+        :param db_database: nome database
+        :param db_port: port database
+        :param db_pool_minsize: grandezza minima pool aiomysql
+        :param db_pool_maxsize: grandezza massima pool aiomysql
+        :param redis_host: host redis
+        :param redis_port: porta redis
+        :param redis_database: numero db redis
+        :param redis_password: password redis
+        :param redis_pool_size: grandezza pool redis
+        :param web_host: ip su cui avviare il socket HTTP dell'API
+        :param web_port: porta su cui avviare il socket HTTP dell'API
+        :param mailgun_client: client mailgun
+        :param telegram_token: token bot telegram
+        :param debug: debug mode
+        :param loop: IOLoop su cui avviare il server
+        """
         self.db_host: str = db_host
         self.db_port: int = db_port
         self.db_username: str = db_username

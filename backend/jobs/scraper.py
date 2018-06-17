@@ -1,9 +1,11 @@
+import asyncio
 import itertools
-from typing import Iterable
+from typing import Iterable, Awaitable, Coroutine, Callable, List, Tuple
 
 from aiomysql import SSDictCursor
 from apscheduler.triggers.interval import IntervalTrigger
 
+from constants.notifications import NotificationWhen
 from singletons.emanews import EmaNews
 
 import logging
@@ -13,6 +15,7 @@ import time
 
 from lxml import html
 
+from utils import notificator, ema_data
 from utils.ema import EmaDocument
 
 emanews = EmaNews()
@@ -37,6 +40,11 @@ class InvalidDocumentError(Exception):
 
 
 async def scrape_herbs():
+    """
+    Effettua lo scraping delle erbe dal sito dell'EMA
+
+    :return:
+    """
     page = 1
     processed_elements = 0
 
@@ -93,9 +101,13 @@ async def scrape_herbs():
                         async with emanews.db.acquire() as conn:
                             async with conn.cursor() as cur:
                                 # Controllo se l'erba esiste già nel database
-                                await cur.execute("SELECT id FROM herbs WHERE latin_name = %s LIMIT 1", (latin_name,))
+                                await cur.execute(
+                                    "SELECT id, status FROM herbs WHERE latin_name = %s LIMIT 1",
+                                    (latin_name,)
+                                )
+                                herb = await cur.fetchone()
 
-                                if await cur.fetchone() is None:
+                                if herb is None:
                                     # Se non esiste, aggiungila
                                     await cur.execute(
                                         "INSERT INTO herbs (latin_name, botanic_name, english_name, status, url, "
@@ -103,6 +115,22 @@ async def scrape_herbs():
                                         (latin_name, botanic_name, english_name, status, url, int(time.time()))
                                     )
                                     await conn.commit()
+                                    notificator.notify(
+                                        NotificationWhen.NEW_MEDICINE,
+                                        await ema_data.get_herb(cur, cur.lastrowid)
+                                    )
+                                elif herb["status"] != status:
+                                    # Cambio stato
+                                    await cur.execute(
+                                        "UPDATE herbs SET status = %s, latest_update = %s WHERE id = %s LIMIT 1",
+                                        (status, int(time.time()), herb["id"])
+                                    )
+                                    await conn.commit()
+                                    notificator.notify(
+                                        NotificationWhen.MEDICINE_UPDATE,
+                                        await ema_data.get_herb(cur, herb["id"]),
+                                        herb["id"]
+                                    )
 
                                 # TODO: Aggiornamento?
                         processed_elements += 1
@@ -114,8 +142,20 @@ async def scrape_herbs():
 
 
 async def scrape_documents():
-    def scrape_table(path: str, type_: str) -> Iterable[EmaDocument]:
-        for doc in tree.xpath(path):
+    """
+    Effettua lo scraping dei documenti dal sito dell'EMA, per ogni erba salvata nel database
+
+    :return:
+    """
+    def scrape_table(rows_path: str, type_: str) -> Iterable[EmaDocument]:
+        """
+        Generatore che effettua lo scraping delle tabelle del sito dell'EMA contenenti documenti
+        
+        :param rows_path: xpath righe tabella
+        :param type_: tipo dei documenti contenuti in questa tabella
+        :return: oggetti `EmaDocument` che rappresentano i documenti presenti nella tabella
+        """
+        for doc in tree.xpath(rows_path):
             # Prendi tutte le colonne (devono essere 4)
             columns = doc.xpath("td")
             if len(columns) != 4:
@@ -167,6 +207,7 @@ async def scrape_documents():
 
                             # Elabora ogni documento, sia nella scheda "consultations" che "other"
                             update_herb_latest_update = False
+                            notifications: List[Tuple[NotificationWhen, int, int]] = []
                             for document in itertools.chain(
                                 scrape_table(".//div[@id='consultation']//table/tbody/tr", "consultation"),
                                 scrape_table(".//div[@id='documents']//table/tbody/tr", "other")
@@ -191,6 +232,7 @@ async def scrape_documents():
                                             document.first_published, document.last_updated_ema, document.url
                                         )
                                     )
+                                    notifications.append((NotificationWhen.NEW_DOCUMENT, cur.lastrowid, herb["id"]))
                                 elif (
                                     document.last_updated_ema is not None
                                     and matching_document["last_updated_ema"] is None
@@ -213,7 +255,9 @@ async def scrape_documents():
                                             matching_document["id"]
                                         )
                                     )
-
+                                    notifications.append(
+                                        (NotificationWhen.DOCUMENT_UPDATE, matching_document["id"], herb["id"])
+                                    )
                             if update_herb_latest_update:
                                 # Se abbiamo aggiunto/aggiornato un documento di questa erba,
                                 # modifica anche la data di aggiornamento dell'erba
@@ -228,12 +272,26 @@ async def scrape_documents():
 
                             # Commit per ogni erba
                             await conn.commit()
+                            asyncio.gather(
+                                notificator.notify(
+                                    when,
+                                    await ema_data.get_document(cur, document_id),
+                                    herb_id
+                                ) for when, document_id, herb_id in notifications
+                            )
 
 
 @emanews.scheduler.scheduled_job(
     IntervalTrigger(minutes=10)
 )
 async def scrape_everything():
+    """
+    Effettua lo scraping delle erbe e dei documenti
+    dal sito dell'EMA. Questa funzione è avviata
+    ogni 10 minuti dallo schedulatore
+
+    :return:
+    """
     await scrape_herbs()
     logger.info("Herbs scraping completed")
     await scrape_documents()
