@@ -1,8 +1,6 @@
 from aiotg import Chat
 
-from constants.notifications import NotificationWhen
 from singletons.emanews import EmaNews
-from utils import notificator, ema_data
 
 bot = EmaNews().bot
 
