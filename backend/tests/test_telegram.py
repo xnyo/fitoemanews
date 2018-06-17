@@ -50,15 +50,15 @@ async def test_telegram_token_already_generated_returns_same(cli):
 #             assert (await cur.fetchone()) is None
 
 
-async def test_telegram_token_already_linked(cli):
-    await login(cli)
-    await cli.get("/api/v1/telegram")
-    resp = await cli.get("/api/v1/telegram")
-    assert resp.status == 406
-    async with EmaNews().db.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT * FROM telegram_link_tokens WHERE user_id = 1 LIMIT 1")
-            assert (await cur.fetchone()) is None
+# async def test_telegram_token_already_linked(cli):
+#     await login(cli)
+#     await cli.get("/api/v1/telegram")
+#     resp = await cli.get("/api/v1/telegram")
+#     assert resp.status == 406
+#     async with EmaNews().db.acquire() as conn:
+#         async with conn.cursor() as cur:
+#             await cur.execute("SELECT * FROM telegram_link_tokens WHERE user_id = 1 LIMIT 1")
+#             assert (await cur.fetchone()) is None
 
 
 async def test_telegram_token_not_authenticated(cli):
@@ -67,6 +67,11 @@ async def test_telegram_token_not_authenticated(cli):
 
 
 async def test_telegram_unlink(cli):
+    async with EmaNews().db.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("UPDATE users SET telegram_user_id = 1337 WHERE id = 1 LIMIT 1")
+            await conn.commit()
+
     await login(cli)
     resp = await cli.delete("/api/v1/telegram")
     assert resp.status == 200
