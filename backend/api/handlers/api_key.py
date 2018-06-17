@@ -17,7 +17,7 @@ async def post(request: Request, *, session: Session, params):
     async with EmaNews().db.acquire() as conn:
         async with conn.cursor() as cur:
             found = False
-            while not found:
+            while not found:    # pragma: nocover
                 key = general.random_string_secure(32)
                 key_hash = general.sha512(key)
                 await cur.execute("SELECT id FROM api_keys WHERE key_hash = %s LIMIT 1", (key_hash,))

@@ -3,6 +3,8 @@ import asyncio
 import aiomysql
 import pytest
 from aiohttp import web
+from aiotg import Bot
+from telethon import TelegramClient
 
 import tests.unit_api.base
 import tests.unit_api.errors
@@ -10,6 +12,7 @@ from migrator.migrator import Migrator
 from singletons.config import Config
 from singletons.emanews import EmaNews
 from utils import singletons
+from utils.mailgun import MailgunClient, DummyMailgunClient
 
 
 @pytest.fixture
@@ -105,10 +108,16 @@ def app(loop, initialize_test_env):
         redis_password=c["REDIS_PASSWORD"],
         redis_database=c["REDIS_TEST_DATABASE"],
         redis_pool_size=c["REDIS_POOL_SIZE"],
+        telegram_token=c["TELEGRAM_TOKEN"],
+        mailgun_client=MailgunClient(
+            domain=c["MAILGUN_DOMAIN"],
+            key=c["MAILGUN_KEY"],
+            default_from=c["MAILGUN_DEFAULT_SENDER"]
+        ) if c["MAILGUN_KEY"] is not None else DummyMailgunClient(),
         debug=False
     )
     server.initialize()
-    yield server.app
+    yield server
     loop.run_until_complete(dispose_test_env())
     loop.run_until_complete(server.dispose())
 
@@ -123,7 +132,7 @@ def cli(app, aiohttp_client):
     :param aiohttp_client:
     :return:
     """
-    return asyncio.get_event_loop().run_until_complete(aiohttp_client(app))
+    return asyncio.get_event_loop().run_until_complete(aiohttp_client(app.app))
 
 
 async def login(client, email="user@emane.ws", password="password"):
@@ -133,3 +142,13 @@ async def login(client, email="user@emane.ws", password="password"):
     })
     client.session.cookie_jar.update_cookies(resp.cookies)
     return resp.cookies
+
+
+@pytest.fixture
+def telegram_user_bot():
+    client = TelegramClient(
+        "EmaNews py.test session", Config()["TELEGRAM_TEST_API_ID"], Config()["TELEGRAM_TEST_API_HASH"]
+    )
+    client.start()
+    assert client.get_me() is not None
+    return client

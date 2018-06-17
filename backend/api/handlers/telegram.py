@@ -38,7 +38,7 @@ async def get(request: Request, *, session: Session):
             token = await cur.fetchone()
             if token is None:
                 found = False
-                while not found:
+                while not found:    # pragma: nocover
                     token = general.random_string_secure(16)
                     await cur.execute("SELECT id FROM telegram_link_tokens WHERE token = %s LIMIT 1", (token,))
                     found = not await cur.fetchone()
@@ -51,8 +51,9 @@ async def get(request: Request, *, session: Session):
             await conn.commit()
 
     # Ok!
+    bot_username = (await EmaNews().bot.get_me())["username"]
     return web.json_response({
-        "telegram_link": "https://telegram.me/{}?start={}".format("emanewsbot", token)
+        "telegram_link": "https://telegram.me/{}?start={}".format(bot_username, token)
     })
 
 

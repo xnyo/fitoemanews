@@ -5,3 +5,4 @@ settings.ini
 .pytest_cache/
 coverage_html_report/
 .coverage.*
+*.session
