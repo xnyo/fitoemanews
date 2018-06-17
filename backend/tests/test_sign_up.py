@@ -56,6 +56,16 @@ async def test_sign_up_all_fields_spaces(cli):
     assert resp.status == 400
 
 
+async def test_sign_up_used_email(cli):
+    resp = await cli.post("/api/v1/user", json={
+        "name": "Name",
+        "surname": "Surname",
+        "email": "user@emane.ws",
+        "password": "somequalitypassword"
+    })
+    assert resp.status == 409
+
+
 async def test_sign_up_name_too_short(cli):
     resp = await cli.post("/api/v1/user", json={
         "name": "o",

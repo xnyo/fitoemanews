@@ -79,3 +79,11 @@ async def test_logout_api_key(cli):
         "apikey": "testtoken"
     })
     assert resp.status == 406
+
+
+async def test_user_info(cli):
+    await login(cli)
+    resp = await cli.get("/api/v1/user")
+    data = await resp.json()
+    assert data["name"] == "Test" and data["surname"] == "User" \
+        and data["privileges"] == 2 and data["gravatar_hash"] == "28ad76f33b98f31da09ed225587f2f8a"

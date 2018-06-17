@@ -1,6 +1,6 @@
 import asyncio
 import itertools
-from typing import Iterable, Awaitable, Coroutine, Callable, List, Tuple
+from typing import Iterable, List, Tuple
 
 from aiomysql import SSDictCursor
 from apscheduler.triggers.interval import IntervalTrigger
@@ -98,7 +98,7 @@ async def scrape_herbs():
                         # TODO: Namedtuple
 
                         # Salvataggio nel db
-                        async with emanews.db.acquire() as conn:
+                        async with EmaNews().db.acquire() as conn:
                             async with conn.cursor() as cur:
                                 # Controllo se l'erba esiste già nel database
                                 await cur.execute(
@@ -180,7 +180,7 @@ async def scrape_documents():
             yield EmaDocument(name, type_, url, language, first_published, last_updated)
 
     # Mantieni aperta una connessione al db
-    async with emanews.db.acquire() as conn:
+    async with EmaNews().db.acquire() as conn:
         async with conn.cursor(SSDictCursor) as unbuffered_cur:
             # Seleziona tutte le erbe dal db
             await unbuffered_cur.execute("SELECT * FROM herbs")
