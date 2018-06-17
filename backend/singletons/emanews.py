@@ -32,7 +32,7 @@ class EmaNews:
         web_host: Optional[str]=None, web_port: Optional[int]=None,
         mailgun_client: MailgunClient=None,
         telegram_token: str=None,
-        debug: bool = False, loop=None
+        debug: bool = False, loop=None, no_notifications: bool=False
     ):
         """
         Inizializza singleton EmaNews
@@ -55,6 +55,7 @@ class EmaNews:
         :param telegram_token: token bot telegram
         :param debug: debug mode
         :param loop: IOLoop su cui avviare il server
+        :param no_notifications: Se `true`, disattiva le notifiche
         """
         self.db_host: str = db_host
         self.db_port: int = db_port
@@ -83,6 +84,7 @@ class EmaNews:
         self.scheduler: AsyncIOScheduler = None
         self.bot: Bot = None
         self.loop = loop if loop is not None else asyncio.get_event_loop()
+        self.no_notifications: bool = no_notifications
 
     async def connect_db(self):
         """
@@ -186,6 +188,10 @@ class EmaNews:
         """
         if self._initialized:   # pragma: nocover
             raise RuntimeError("EmaNews already initialized")
+
+        if self.no_notifications:
+            self.logger.warning("Notifications are disabled")
+
         loop = asyncio.get_event_loop()
 
         self.logger.info("Initializing fitoemanews")

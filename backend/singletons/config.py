@@ -42,6 +42,7 @@ class Config:
             "MAILGUN_DEFAULT_SENDER": config("MAILGUN_DEFAULT_SENDER", default=None),
 
             "DEBUG": config("DEBUG", default="false", cast=bool),
+            "WEB_BASE_URL": config("WEB_BASE_URL")
         }
 
     def __getitem__(self, item):

@@ -10,6 +10,7 @@ from api.schema import StrippedString
 from api.sessions import Session
 from constants.privileges import Privileges
 from exceptions.api import ConflictError
+from singletons.config import Config
 from singletons.emanews import EmaNews
 from utils import general, gravatar
 
@@ -70,7 +71,16 @@ async def post(request: Request, *, params):
             await cur.execute("INSERT INTO activation_tokens (user_id, token) VALUES (%s, %s)",
                               (cur.lastrowid, token))
             await conn.commit()
-    # TODO: Invio email
+
+            # Invio email
+            await EmaNews().mailgun_client.send(
+                to=params["email"],
+                subject="Conferma il tuo account EmaNews",
+                html="Clicca sul seguente link per attivare il tuo account EmaNews: "
+                     "<a href='{}/activate/{}'>Attiva account</a>".format(
+                    Config()["WEB_BASE_URL"].rstrip("/"), token
+                )
+            )
 
     # Ok!
     return web.json_response({

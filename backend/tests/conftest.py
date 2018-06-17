@@ -109,11 +109,12 @@ def app(loop, initialize_test_env):
         redis_database=c["REDIS_TEST_DATABASE"],
         redis_pool_size=c["REDIS_POOL_SIZE"],
         telegram_token=c["TELEGRAM_TOKEN"],
-        mailgun_client=MailgunClient(
-            domain=c["MAILGUN_DOMAIN"],
-            key=c["MAILGUN_KEY"],
-            default_from=c["MAILGUN_DEFAULT_SENDER"]
-        ) if c["MAILGUN_KEY"] is not None else DummyMailgunClient(),
+        # mailgun_client=MailgunClient(
+        #     domain=c["MAILGUN_DOMAIN"],
+        #     key=c["MAILGUN_KEY"],
+        #     default_from=c["MAILGUN_DEFAULT_SENDER"]
+        # ) if c["MAILGUN_KEY"] is not None else DummyMailgunClient(),
+        mailgun_client=DummyMailgunClient(),
         debug=False
     )
     server.initialize()

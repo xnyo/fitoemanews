@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from constants.notifications import NotificationWhen, NOTIFICATORS
@@ -17,6 +18,10 @@ async def notify(event: NotificationWhen, fmt: Optional[dict], herb_id: Optional
                      Se `None`, invia la notifica a tutti.
     :return:
     """
+    if EmaNews().no_notifications:
+        logging.getLogger("notifications").warning("Missed notification {} {} [{}]".format(event, fmt, herb_id))
+        return
+
     if event not in NOTIFICATORS:
         raise KeyError("There's no notificator for event `{}`".format(event))
 

@@ -115,7 +115,7 @@ async def scrape_herbs():
                                         (latin_name, botanic_name, english_name, status, url, int(time.time()))
                                     )
                                     await conn.commit()
-                                    notificator.notify(
+                                    await notificator.notify(
                                         NotificationWhen.NEW_MEDICINE,
                                         await ema_data.get_herb(cur, cur.lastrowid)
                                     )
@@ -126,7 +126,7 @@ async def scrape_herbs():
                                         (status, int(time.time()), herb["id"])
                                     )
                                     await conn.commit()
-                                    notificator.notify(
+                                    await notificator.notify(
                                         NotificationWhen.MEDICINE_UPDATE,
                                         await ema_data.get_herb(cur, herb["id"]),
                                         herb["id"]
@@ -195,9 +195,8 @@ async def scrape_documents():
                     async with conn.cursor() as cur:
                         # Recupera i documenti attualmente salvati per questa erba
                         await cur.execute("SELECT * FROM documents WHERE herb_id = %s", (herb["id"],))
-                        sas = await cur.fetchall()
                         stored_documents = [
-                            {**x, **{"name": x["name"].strip().lower()}} for x in sas
+                            {**x, **{"name": x["name"].strip().lower()}} for x in await cur.fetchall()
                         ]
 
                         # Scraping della pagina del sito dell'EMA di questa erba
@@ -215,7 +214,8 @@ async def scrape_documents():
                                 # Controlla se esiste un documento con lo stesso nome
                                 safe_document_name = document.name.strip().lower()
                                 matching_document = next(
-                                    (x for x in stored_documents if x["name"] == safe_document_name),
+                                    (x for x in stored_documents
+                                     if x["name"] == safe_document_name or x["url"] == document.url),
                                     None
                                 )
 
@@ -272,13 +272,16 @@ async def scrape_documents():
 
                             # Commit per ogni erba
                             await conn.commit()
-                            asyncio.gather(
-                                notificator.notify(
-                                    when,
-                                    await ema_data.get_document(cur, document_id),
-                                    herb_id
-                                ) for when, document_id, herb_id in notifications
-                            )
+
+                            # Notifiche
+                            if notifications:
+                                asyncio.gather(*[
+                                    notificator.notify(
+                                        when,
+                                        await ema_data.get_document(cur, document_id),
+                                        herb_id
+                                    ) for when, document_id, herb_id in notifications
+                                ])
 
 
 @emanews.scheduler.scheduled_job(

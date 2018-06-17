@@ -96,7 +96,7 @@ def errors(f: Callable) -> Callable:
             resp = json_error_response(201, readable_exception(e, "Created"))
         except api.NotAuthenticatedError:
             resp = json_error_response(401, "Not authenticated")
-        except api.ForceLogoutError as e:
+        except (api.ForceLogoutError, sessions.SessionError) as e:
             resp = json_error_response(200, readable_exception(e, "Disconnected"))
             resp.del_cookie("session")
         except asyncio.CancelledError:

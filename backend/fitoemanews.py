@@ -10,7 +10,7 @@ from utils.mailgun import MailgunClient, DummyMailgunClient
 def main(test_mode=False):  # pragma: nocover
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-
+    scrape_mode = "scrape" in sys.argv
     test_mode = "testmode" in sys.argv or test_mode
     if test_mode:
         logging.getLogger().warning("Starting EmaNews with test configuration!")
@@ -36,9 +36,11 @@ def main(test_mode=False):  # pragma: nocover
             domain=c["MAILGUN_DOMAIN"],
             key=c["MAILGUN_KEY"],
             default_from=c["MAILGUN_DEFAULT_SENDER"]
-        ) if c["MAILGUN_KEY"] is not None else DummyMailgunClient()
+        ) if c["MAILGUN_KEY"] is not None else DummyMailgunClient(),
+        no_notifications=scrape_mode
     )
-    if "scrape" in sys.argv:
+    if scrape_mode:
+        EmaNews().logger.info("Running in scraper-only mode")
         EmaNews().initialize()
         loop = asyncio.get_event_loop()
         from jobs import scraper

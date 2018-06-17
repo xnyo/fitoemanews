@@ -3,12 +3,10 @@ from collections import namedtuple
 from datetime import datetime
 from typing import Union, Optional
 
-# EmaDocument = namedtuple("EmaDocument", ["name", "type", "url", "language", "first_published", "last_updated_ema"])
-# EmaDocument.__new__.__defaults__ = (None,) * len(EmaDocument._fields)
 EmaHerb = namedtuple("EmaHerb", ["latin_name", "botanic_name", "english_name", "status", "url", "last_updated_ema"])
 
 
-def ema_date_to_unix(d: Union[str, int]) -> Optional[int]:
+def ema_date_to_unix(d: str) -> Optional[int]:
     """
     Converte una data dal formato usato dall'EMA in una UNIX timestamp
 
@@ -44,8 +42,8 @@ class EmaDocument:
         self.type = _type
         self.url = url
         self.language = language
-        self.first_published = ema_date_to_unix(first_published) if first_published is str else first_published
-        self.last_updated_ema = ema_date_to_unix(last_updated_ema) if last_updated_ema is str else last_updated_ema
+        self.first_published = ema_date_to_unix(first_published) if type(first_published) is str else first_published
+        self.last_updated_ema = ema_date_to_unix(last_updated_ema) if type(last_updated_ema) is str else last_updated_ema
 
     def __repr__(self):
         return "EmaDocument<{}>".format(self.name)
