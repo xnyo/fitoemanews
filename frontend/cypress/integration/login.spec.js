@@ -4,7 +4,7 @@ describe('Login', () => {
   it('Accepts valid input', () => {
     cy.visit('/login')
     let address = 'email@addr.es'
-    cy.get(':nth-child(1) > .control > .input').type(address).should('have.value', address)
+    cy.get(':nth-child(1) > .control > .input').focus().type(address).should('have.value', address)
     cy.get(':nth-child(2) > .control > .input').type('password').should('have.value', 'password')
   })
 
