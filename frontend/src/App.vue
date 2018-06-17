@@ -6,7 +6,15 @@
       :title='$store.state.header.title'
       :subtitle='$store.state.header.subtitle'
     ></main-header>
-    <router-view v-if="!$store.state.loggingIn" ref="view"></router-view>
+    <simple-message-page
+      v-if="!$store.state.api.checkingStatus && $store.state.api.offline"
+      title="Qualcosa non va..."
+      icon="fa-fire-extinguisher"
+      colour="danger"
+    >
+      Sembra esserci un errore con il server. Per favore ritorna più tardi.
+    </simple-message-page>
+    <router-view v-else-if="!$store.state.loggingIn && !$store.state.api.checkingStatus" ref="view"></router-view>
     <div id="login-container" class="notification container is-widescreen" v-else>
       <div class="is-loading">
       </div>
@@ -15,13 +23,15 @@
 </template>
 
 <script>
+import SimpleMessagePage from '@/components/SimpleMessagePage.vue'
 import MainHeader from '@/components/MainHeader.vue'
 import Navbar from '@/components/Navbar.vue'
 
 export default {
   components: {
     MainHeader,
-    Navbar
+    Navbar,
+    SimpleMessagePage
   }
 }
 </script>

@@ -25,13 +25,13 @@ new Vue({
   components: { App },
   template: '<App/>',
   mounted () {
-    // this.$http.get(this.apiUrl('api/v1/ping')).then(() => {
-    //   console.log('Api online')
-    //   this.$store.commit('apiOnline')
-    // }, () => {
-    //   this.$store.commit('apiOffline')
-    // })
-    // this.$store.commit('setLoggingIn', true)
+    this.$http.get(this.apiUrl('api/v1/ping')).then(() => {
+      console.log('Api online')
+      this.$store.commit('apiOnline')
+    }, () => {
+      this.$store.commit('apiOffline')
+    })
+    this.$store.commit('setLoggingIn', true)
     this.checkLogin()
   },
   methods: {
