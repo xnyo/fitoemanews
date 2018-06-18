@@ -2,13 +2,13 @@ swagger: '2.0'
 info:
   version: 1.0.0
   title: EmaNews API
-host: '172.16.10.100'
+host: 172.16.10.100
 basePath: /api/v1
 tags:
   - name: private
     description: Handler per operazioni effettuate dal frontend
   - name: public
-    description: Handler per operazioni sui dati offertndex.html#/i dall'EMA
+    description: 'Handler per operazioni sui dati offertndex.html#/i dall''EMA'
   - name: protected
     description: Handler che richiedono il login
   - name: guests
@@ -79,14 +79,21 @@ paths:
         - API Key: []
         - API Key Header: []
         - Cookie di sessione: []
-      summary: Ricerca erbe
+      summary: >-
+        Effettua una ricerca tra erbe medicinali memorizzate. Permette di
+        ritornare anche i documenti associati alle erbe medicinali.
       responses:
         '200':
           description: Risultati ricerca
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Herb'
+            type: object
+            properties:
+              herbs:
+                $ref: '#/definitions/Herb'
+              total:
+                type: string
+                description: Numero totale di risultati
+                example: '268'
         '401':
           $ref: '#/responses/NotAuthenticated'
         '405':
@@ -161,10 +168,11 @@ paths:
                 id:
                   type: integer
                   example: '1'
+                  description: ID interno dell'API Key.
                 name:
                   type: string
                   example: la mia api key
-                  description: ''
+                  description: 'Nome dell''API key, scelto dall''utente.'
         '400':
           $ref: '#/responses/InvalidArgumentsError'
         '401':
@@ -263,6 +271,8 @@ paths:
               message:
                 type: string
                 default: ok
+                description: Messaggio che descrive il risultato della richiesta.
+                example: ok
         '400':
           $ref: '#/responses/InvalidArgumentsError'
         '403':
@@ -368,7 +378,7 @@ paths:
             properties:
               strength:
                 type: integer
-                example: '4'
+                example: '75'
                 description: Da 0 (per niente sicura) a 100 (molto sicura)
                 format: ''
         '400':
@@ -433,7 +443,7 @@ paths:
               password:
                 type: string
                 example: aWxzdXNsZWFrQA
-                description: Password dell'utente (in chiuaro)
+                description: Password dell'utente (in chiaro)
             required:
               - password
               - email
@@ -442,7 +452,7 @@ paths:
       schemes:
         - https
       description: >-
-        Registra un nuovo utente. **La connessione dovrebbe avvenire in HTTPs,
+        Registra un nuovo utente. **La connessione dovrebbe avvenire in HTTPS,
         poichè la password viene trasmessa in chiaro.**
     get:
       produces:
@@ -454,7 +464,7 @@ paths:
         - API Key: []
         - API Key Header: []
         - Cookie di sessione: []
-      summary: Ritorna le informazioni dell'utente attuale
+      summary: Ritorna le informazioni dell'utente attualmente loggato
       responses:
         '200':
           description: Informazioni dell'utente loggato
@@ -606,9 +616,9 @@ paths:
         L'utente dovrà cliccare sul link, aprire Telegram e cliccare su
         "Start".  
 
-        _[Maggiori informazioni sul deep linking sono riportate nella
-        documentazione di
-        Telegram](https://core.telegram.org/bots#deep-linking)._
+        _Maggiori informazioni sul deep linking sono riportate nella
+        documentazione di Telegram.
+        (https://core.telegram.org/bots#deep-linking)_
       operationId: getTelegramToken
       responses:
         '200':
@@ -667,47 +677,83 @@ definitions:
       id:
         type: integer
         format: int32
+        example: '1'
+        description: ID interno dell'erba medicinale
       latin_name:
         type: string
+        example: Sambuci fructus
+        description: Nome latino dell'erba medicinale. Fornito dall'EMA.
       botanic_name:
         type: string
+        example: Sambucus nigra L.
+        description: Nome botanico dell'erba medicinale. Fornito dall'EMA.
       english_name:
         type: string
+        example: Elderberry
+        description: Nome inglese dell'erba medicinale. Fornito dall'EMA.
       status:
         $ref: '#/definitions/HerbStatus'
       url:
         type: string
+        example: >-
+          http://www.ema.europa.eu/ema/index.jsp?curl=pages/medicines/herbal/medicines/herbal_med_000193.jsp&mid=WC0b01ac058001fa1d
+        description: URL alla pagina del sito dell'EMA relativo all'erba medicinale.
       latest_update:
         type: integer
         format: int64
         description: >-
           UNIX timestamp dell'istante in cui è stato rilevato un aggiornamento
-          sullo stato dell'erba o su un documento relativo a questa erba.
+          sullo stato dell'erba medicinale o su un suo documento. Questa data è
+          gestita internamente e non è fornita dal sito dell'EMA.
+        example: '1398729600'
       documents:
         $ref: '#/definitions/Document'
+    description: Rappresenta un'erba medicinale reperita dal sito dell'EMA.
   Document:
     type: object
     properties:
       id:
         type: integer
         format: int32
+        description: ID interno del documento
+        example: '1'
       type:
         $ref: '#/definitions/DocumentType'
       name:
         type: string
+        example: >-
+          Call for scientific data for use in HMPC assessment work on Sambucus
+          nigra L., fructus
+        description: Nome del documento. Fornito dall'EMA.
       language:
         type: string
+        example: (English only)
+        description: Lingua del documento. Fornita dall'EMA.
       first_published:
-        type: string
+        type: integer
+        example: '1318809600'
+        description: >-
+          UNIX timestamp della data di pubblicazione del documento. Fornita
+          dall'EMA.
+        format: int64
       last_updated_ema:
         type: integer
         format: int64
         description: >-
-          UNIX timestamp dell'istante in cui è stato rilevato un aggiornamento
-          su questo documento.
+          UNIX timestamp dell'ultimo aggiornamento a questo documento. La data è
+          fornita dal sito dell'EMA. È `null` se il documento non è mai stato
+          aggiornato.
+        example: 'null'
       url:
         type: string
         description: URL diretto al file PDF di questo documento
+        example: >-
+          http://www.ema.europa.eu/docs/en_GB/document_library/Herbal_-_Call_for_data/2011/10/WC500116585.pdf
+      herb_id:
+        type: integer
+        example: '1'
+        description: ID dell'erba medicinale a cui è collegato questo documento.
+    description: Rappresenta un documento consultabile dal sito dell'EMA.
   HerbStatus:
     type: string
     enum:
@@ -717,14 +763,15 @@ definitions:
       - P
       - PF
       - F
-    description: |
-      Tipo di erba:
+    description: |-
+      Stato dell'erba medicinale. Possibili valori:
       * `R` - Rapporteur assigned
       * `C` - Ongoing call for scientific data
       * `D` - Draft under discussion
       * `P` - Draft published
       * `PF` - Assessment close to finalisation (pre-final)
       * `F` - Final opinion adopted
+    example: F
   NotificationWhen:
     type: string
     enum:
@@ -738,23 +785,34 @@ definitions:
       * `MEDICINE_UPDATE` - Una medicina esistente è stata aggiornata
       * `NEW_DOCUMENT` - Un nuovo documento è stato inserito
       * `DOCUMENT_UPDATE` - Un documento esistente è stato aggiornato
+    example: NEW_MEDICINE
   NotificationBy:
     type: string
     enum:
       - EMAIL
       - TELEGRAM
-    description: >
+    description: >-
       Come ricevere gli aggiornamenti:
 
       * `EMAIL` - Per email
 
-      * `MEDICINE_UPDATE` - Via Telegram (necessario collegamento account
+      * `TELEGRAM` - Via Telegram (necessario collegamento account
       EmaNews-Telegram)
+    example: TELEGRAM
   DocumentType:
     type: string
     enum:
       - consultation
       - other
+    description: >-
+      Tipo di documento.
+
+      * `consultation` - Documento riportato nella scheda "Consultation" del
+      sito dell'EMA.
+
+      * `other` - Documento riportato nella scheda "All documents" del sito
+      dell'EMA
+    example: consultation
 responses:
   Ok:
     description: Richiesta elaborata con successo
@@ -763,13 +821,14 @@ responses:
       properties:
         message:
           type: string
-          default: ''
+          default: ok
           example: ok
+          description: Messaggio che descrive il risultato della richiesta.
   MethodNotAllowed:
     description: Il metodo HTTP utilizzato non è supportato da questo handler
     schema:
       type: string
-      default: ''
+      default: '405: Method Not Allowed'
       example: '405: Method Not Allowed'
   NotAuthenticated:
     description: È necessario autenticarsi per utilizzare questo handler
@@ -780,10 +839,12 @@ responses:
           type: number
           default: ''
           example: '401'
+          description: Coincide con lo status code della risposta HTTP del server.
         message:
           type: string
-          default: ''
+          default: not authenticated
           example: not authenticated
+          description: Messaggio che descrive il risultato della richiesta.
   InvalidArgumentsError:
     description: Alcuni parametri non sono validi o mancano dei parametri obbligatori.
     schema:
@@ -791,12 +852,14 @@ responses:
       properties:
         status:
           type: integer
-          default: ''
+          default: '400'
           example: '400'
+          description: Coincide con lo status code della risposta HTTP del server.
         message:
           type: string
-          default: ''
+          default: Some arguments are not valid
           example: Some arguments are not valid
+          description: Messaggio che descrive il risultato della richiesta.
   AlreadyLoggedInError:
     description: >-
       Metodo accessibile solo dagli ospiti, ma è presente una API Key o un
@@ -806,12 +869,14 @@ responses:
       properties:
         status:
           type: integer
-          default: ''
+          default: '403'
           example: '403'
+          description: Coincide con lo status code della risposta HTTP del server.
         message:
           type: string
-          default: ''
+          default: You are already logged in
           example: You are already logged in
+          description: Messaggio che descrive il risultato della richiesta.
 securityDefinitions:
   API Key:
     type: apiKey
