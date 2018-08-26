@@ -98,7 +98,7 @@ class EmaNews:
             user=self.db_username, password=self.db_password,
             db=self.db_database, minsize=self.db_pool_minsize,
             maxsize=self.db_pool_maxsize, cursorclass=DictCursor,
-            charset="utf8", use_unicode=True
+            charset="utf8", use_unicode=True, autocommit=True
         )
 
     async def connect_redis(self):
