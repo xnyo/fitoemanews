@@ -1,5 +1,5 @@
 <template>
-    <div class="form-container" :class="{'is-loading': loading}">
+    <div class="form-container wide" :class="{'is-loading': loading}">
       <span class="icon has-text-primary is-large ttitle">
         <i class="fas fa-user-plus fa-2x"></i>
         <h3 class="title">Registrazione</h3>
@@ -132,9 +132,6 @@ export default {
 </script>
 
 <style scoped>
-  .form-container {
-    width: 50% !important;
-  }
   .button {
     width: 100%;
     margin-top: 10px;

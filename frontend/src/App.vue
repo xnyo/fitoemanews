@@ -113,15 +113,17 @@ export default {
     visibility: hidden;
   }
 
+  /* Mobile */
   @media only screen and (max-width: 991px) {
-    .form-container {
-      width: 90%;
+    .form-container, .form-container.wide {
+      width: 100%;
     }
     .navbar-item {
       color: white !important;
     }
   }
 
+  /* Desktop */
   @media only screen and (min-width: 992px) and (max-width: 1599px) {
     .form-container {
       width: 50%;
