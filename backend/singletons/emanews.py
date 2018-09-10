@@ -174,7 +174,7 @@ class EmaNews:
         """
         self.scheduler = AsyncIOScheduler(event_loop=self.loop)
         from jobs import scraper
-        # TODO: Cleanup jobs
+        from jobs import cleanup
 
     def initialize_bot(self):
         """
