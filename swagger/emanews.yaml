@@ -1,14 +1,14 @@
 swagger: '2.0'
 info:
-  version: 1.0.0
+  version: 1.0.1
   title: EmaNews API
-host: 172.16.10.100
+host: emanews.nyodev.xyz
 basePath: /api/v1
 tags:
   - name: private
     description: Handler per operazioni effettuate dal frontend
   - name: public
-    description: 'Handler per operazioni sui dati offertndex.html#/i dall''EMA'
+    description: 'Handler per operazioni sui dati offerti dall''EMA'
   - name: protected
     description: Handler che richiedono il login
   - name: guests
@@ -67,7 +67,7 @@ paths:
           in: path
           required: true
           type: string
-          format: Token di attivazione dell'account
+          description: Token di attivazione dell'account
   /herbs:
     get:
       produces:
@@ -380,7 +380,7 @@ paths:
                 type: integer
                 example: '75'
                 description: Da 0 (per niente sicura) a 100 (molto sicura)
-                format: ''
+                format: int32
         '400':
           $ref: '#/responses/InvalidArgumentsError'
         '405':
@@ -670,6 +670,107 @@ paths:
           $ref: '#/responses/NotAuthenticated'
         '405':
           $ref: '#/responses/MethodNotAllowed'
+  '/password_recovery':
+    post:
+      produces:
+        - application/json
+      tags:
+        - private
+        - guests
+      summary: Invia una mail per il recupero password
+      responses:
+        '200':
+          description: Richiesta elaborata. Viene ritornata questa risposta **anche se l'indirizzo email inserito non è collegato a nessun account.**
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: È sempre 'ok'
+                default: 'ok'
+        '405':
+          $ref: '#/responses/MethodNotAllowed'
+        '400':
+            $ref: '#/responses/InvalidArgumentsError'
+        '403':
+          $ref: '#/responses/AlreadyLoggedInError'
+      parameters:
+        - name: email
+          in: query
+          required: true
+          type: string
+          description: Indirizzo email dell'account che necessita il reset della password
+  '/password_reset/{token}':
+    get:
+      produces:
+        - application/json
+      tags:
+        - private
+        - guests
+      summary: Controlla se il token di reset password esiste e non è scaduto
+      responses:
+        '200':
+          $ref: '#/responses/Ok'
+        '404':
+          description: Token di recupero password non trovato o scaduto
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: '404'
+              message:
+                type: string
+                description: Token non valido o scaduto.
+        '405':
+          $ref: '#/responses/MethodNotAllowed'
+        '403':
+          $ref: '#/responses/AlreadyLoggedInError'
+      parameters:
+        - name: token
+          in: path
+          required: true
+          type: string
+          description: Token di recupero password
+    post:
+      produces:
+        - application/json
+      tags:
+        - private
+        - guests
+      summary: Reimposta la password di un account tramite il token di recupero password
+      responses:
+        '200':
+          $ref: '#/responses/Ok'
+        '404':
+          description: Token di recupero password non trovato o scaduto
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                default: '404'
+              message:
+                type: string
+                description: Token non valido o scaduto.
+        '405':
+          $ref: '#/responses/MethodNotAllowed'
+        '400':
+          $ref: '#/responses/InvalidArgumentsError'
+        '403':
+          $ref: '#/responses/AlreadyLoggedInError'
+      parameters:
+        - in: path
+          name: token
+          required: true
+          type: string
+          description: Token di recupero password
+        - in: body
+          name: password
+          required: true
+          schema:
+            type: string
+          description: Nuova password (in chiaro)
 definitions:
   Herb:
     type: object
