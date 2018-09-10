@@ -142,7 +142,7 @@ class EmaNews:
         :return:
         """
         from api.handlers import ping, zxcvbn_strength, user, activate, login, logout, herbs, notification_settings, \
-            telegram, api_key
+            telegram, api_key, password_recovery, password_reset
         self.app: web.Application() = web.Application()
         self.app.add_routes([
             web.get("/api/v1/ping", ping.handle),
@@ -160,6 +160,9 @@ class EmaNews:
             web.get("/api/v1/api_keys", api_key.get),
             web.post("/api/v1/api_keys", api_key.post),
             web.delete("/api/v1/api_keys/{id_}", api_key.delete),
+            web.post("/api/v1/password_recovery", password_recovery.handle),
+            web.get("/api/v1/password_reset/{token}", password_reset.get),
+            web.post("/api/v1/password_reset/{token}", password_reset.post),
         ])
 
     def initialize_scheduler(self):
@@ -170,6 +173,7 @@ class EmaNews:
         """
         self.scheduler = AsyncIOScheduler(event_loop=self.loop)
         from jobs import scraper
+        # TODO: Cleanup jobs
 
     def initialize_bot(self):
         """

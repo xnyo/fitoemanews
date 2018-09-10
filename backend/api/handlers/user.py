@@ -6,7 +6,7 @@ from schema import And, Use
 from zxcvbn import zxcvbn
 
 import api
-from api.schema import StrippedString
+from api.schema import StrippedString, Password
 from api.sessions import Session
 from constants.privileges import Privileges
 from exceptions.api import ConflictError
@@ -33,12 +33,7 @@ from utils import general, gravatar
         lambda x: validate_email(x)["email"],
         error="Indirizzo email non valido"
     ),
-    "password": And(
-        StrippedString,
-        lambda x: ((100 * zxcvbn(x)["score"]) / 4) >= 50,
-        Use(lambda x: x.encode()),
-        error="La password scelta è troppo debole"
-    ),
+    "password": Password,
 })
 async def post(request: Request, *, params):
     async with EmaNews().db.acquire() as conn:
