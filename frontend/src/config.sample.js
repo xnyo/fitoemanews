@@ -1,3 +1,4 @@
 export default {
-  apiURL: ''
+  apiURL: '',
+  sentryDSN: '' // optional
 }
