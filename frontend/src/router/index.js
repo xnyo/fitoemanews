@@ -93,11 +93,9 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   if (Store.state.loggingIn) {
-    console.log('still logging in, skipping router beforeeach')
     next()
     return
   }
-  console.log('in beforeeach')
   if (to.meta.hasOwnProperty('protected') && to.meta.protected && !Store.getters.loggedIn) {
     next('/login')
   } else if (to.meta.hasOwnProperty('guestsOnly') && to.meta.guestsOnly && Store.getters.loggedIn) {

@@ -26,7 +26,6 @@ new Vue({
   template: '<App/>',
   mounted () {
     this.$http.get(this.apiUrl('api/v1/ping')).then(() => {
-      console.log('Api online')
       this.$store.commit('apiOnline')
     }, () => {
       this.$store.commit('apiOffline')

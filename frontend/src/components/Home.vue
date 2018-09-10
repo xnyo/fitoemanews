@@ -195,7 +195,6 @@ export default {
 
     onSort (field, order) {
       this.sortField = field
-      console.log(this.sortOrder)
       this.sortOrder = order
       this.getHerbs()
     }
