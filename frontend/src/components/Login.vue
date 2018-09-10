@@ -33,6 +33,15 @@
             <span>Registrati</span>
           </button>
         </div>
+        <hr>
+        <div class="control">
+          <button class="button is-danger is-outlined" @click="$router.push('/password_recovery')">
+            <span class="icon">
+              <i class="fas fa-unlock-alt"></i>
+            </span>
+            <span>Hai dimenticato la password?</span>
+          </button>
+        </div>
       </section>
     </div>
 </template>

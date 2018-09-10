@@ -8,6 +8,8 @@ const SignUp = () => import(/* webpackChunkName: 'sign-up' */ '@/components/Sign
 const Activate = () => import(/* webpackChunkName: 'sign-up-activate' */ '@/components/SignUp/ActivatePage')
 const NotificationSettings = () => import(/* webpackChunkName: 'notification-settings' */ '@/components/NotificationSettings/Page')
 const ApiKeys = () => import(/* webpackChunkName: 'api-keys' */ '@/components/ApiKeys/Page')
+const PasswordRecoveryStart = () => import(/* webpackChunkName: 'password-recovery-start' */ '@/components/PasswordRecovery/Start')
+const PasswordReset = () => import(/* webpackChunkName: 'password-reset' */ '@/components/PasswordRecovery/Reset')
 
 Vue.use(Router)
 
@@ -66,6 +68,24 @@ const router = new Router({
         protected: true,
         title: 'API Keys',
         subtitle: 'Usa i dati forniti da EmaNews fuori dal nostro sito'
+      }
+    }, {
+      path: '/password_recovery',
+      name: 'PasswordRecoveryStart',
+      component: PasswordRecoveryStart,
+      meta: {
+        guestsOnly: false,
+        title: 'Recupero password',
+        subtitle: 'Se hai dimenticato la tua password, effettua questa procedura'
+      }
+    }, {
+      path: '/password_reset/:token',
+      name: 'PasswordReset',
+      component: PasswordReset,
+      meta: {
+        guestsOnly: true,
+        title: 'Reset password',
+        subtitle: 'Cambia la password del tuo account EmaNews'
       }
     }
   ]

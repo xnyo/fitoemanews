@@ -113,6 +113,18 @@ export default {
     visibility: hidden;
   }
 
+  .form-container .button[type="submit"] {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .centered-msg-content {
+    text-align: center;
+  }
+  .centered-msg-content p {
+    margin-bottom: 20px;
+  }
+
   /* Mobile */
   @media only screen and (max-width: 991px) {
     .form-container, .form-container.wide {

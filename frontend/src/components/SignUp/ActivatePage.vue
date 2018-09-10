@@ -1,6 +1,6 @@
 <template>
   <simple-message-page
-    id="msg"
+    class="centered-msg-content"
     :title="hasError ? 'Si è verificato un errore' : 'Account attivato!'"
     :icon="hasError ? 'fa-exclamation-circle' : 'fa-check-circle'"
     :colour="hasError ? 'danger' : 'success'"
@@ -52,12 +52,3 @@ export default {
   components: {SimpleMessagePage}
 }
 </script>
-
-<style scoped>
-#msg {
-  text-align: center;
-}
-#msg p {
-  margin-bottom: 20px;
-}
-</style>

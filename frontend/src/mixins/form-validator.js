@@ -2,6 +2,11 @@ import _ from 'underscore'
 
 export default {
   methods: {
+    validateEmail (email) {
+      // eslint-disable-next-line no-useless-escape
+      let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      return re.test(String(email).toLowerCase())
+    },
     checkEmptyField (field) {
       field.value = field.value.trim()
       if (field.value === '') {
@@ -63,6 +68,15 @@ export default {
         this.formData.password.message = ''
         this.formData.repeatPassword.type = 'is-danger'
         this.formData.repeatPassword.message = msg
+      }
+    },
+    passwordStrengthClass (v) {
+      if (v <= 25) {
+        return 'is-danger'
+      } else if (v > 25 && v <= 50) {
+        return 'is-warning'
+      } else {
+        return 'is-success'
       }
     }
   },

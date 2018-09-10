@@ -50,7 +50,6 @@
 </template>
 
 <script>
-import UtilsMixin from '@/mixins/utils'
 import ToastMixin from '@/mixins/toast'
 import FormValidatorMixin from '@/mixins/form-validator'
 
@@ -110,15 +109,7 @@ export default {
     }
   },
   computed: {
-    passwordBarColour () {
-      if (this.passwordBarValue <= 25) {
-        return 'is-danger'
-      } else if (this.passwordBarValue > 25 && this.passwordBarValue <= 50) {
-        return 'is-warning'
-      } else {
-        return 'is-success'
-      }
-    }
+    passwordBarColour () { return this.passwordStrengthClass(this.passwordBarValue) }
   },
   watch: {
     'formData.name.value' () { this.checkEmptyField(this.formData.name) },
@@ -127,13 +118,6 @@ export default {
     'formData.password.value' () { this.checkPasswords(this.formData.password) },
     'formData.repeatPassword.value' () { this.checkPasswords(this.formData.repeatPassword) }
   },
-  mixins: [UtilsMixin, ToastMixin, FormValidatorMixin]
+  mixins: [ToastMixin, FormValidatorMixin]
 }
 </script>
-
-<style scoped>
-  .button {
-    width: 100%;
-    margin-top: 10px;
-  }
-</style>
