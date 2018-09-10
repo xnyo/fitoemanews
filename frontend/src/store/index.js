@@ -15,8 +15,7 @@ const store = new Vuex.Store({
   state: {
     header: {
       title: '',
-      subtitle: '',
-      colour: ''
+      subtitle: ''
     },
     api: {
       checkingStatus: true,
