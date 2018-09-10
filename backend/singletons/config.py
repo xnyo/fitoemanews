@@ -42,7 +42,11 @@ class Config:
             "MAILGUN_DEFAULT_SENDER": config("MAILGUN_DEFAULT_SENDER", default=None),
 
             "DEBUG": config("DEBUG", default="false", cast=bool),
-            "WEB_BASE_URL": config("WEB_BASE_URL", default="http://172.16.10.100")
+            "WEB_BASE_URL": config("WEB_BASE_URL", default="http://172.16.10.100"),
+
+            "SENTRY_DSN": config("SENTRY_DSN", default=""),
+            "RAVEN_QUEUE_SIZE": config("RAVEN_QUEUE_SIZE", default="256", cast=int),
+            "RAVEN_WORKERS": config("RAVEN_WORKERS", default="2", cast=int),
         }
 
     def __getitem__(self, item):

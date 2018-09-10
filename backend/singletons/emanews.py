@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from typing import Optional
 
 import aiomysql
@@ -8,6 +9,10 @@ from aiohttp import web
 from aiomysql import DictCursor
 from aiotg import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import raven
+from functools import partial
+from raven.exceptions import InvalidGitRepository
+from raven_aiohttp import QueuedAioHttpTransport
 
 from migrator.migrator import Migrator
 from utils.mailgun import MailgunClient
@@ -31,8 +36,8 @@ class EmaNews:
         redis_database: int = 0, redis_password: str = None,
         redis_pool_size: int = 8, db_pool_maxsize: int=None,
         web_host: Optional[str]=None, web_port: Optional[int]=None,
-        mailgun_client: MailgunClient=None,
-        telegram_token: str=None,
+        mailgun_client: MailgunClient=None, telegram_token: str=None,
+        sentry_dsn: str=None, raven_workers: int=None, raven_queue_size: int=None,
         debug: bool = False, loop=None, no_notifications: bool=False
     ):
         """
@@ -74,6 +79,9 @@ class EmaNews:
         self.web_host: str = web_host
         self.web_port: int = web_port
         self.telegram_token: str = telegram_token
+        self.sentry_dsn: str = sentry_dsn
+        self.raven_queue_size: int = raven_queue_size
+        self.raven_workers: int = raven_workers
         self.mailgun_client: MailgunClient = mailgun_client
 
         logging.basicConfig(level=logging.DEBUG if self.debug else logging.INFO)
@@ -84,6 +92,7 @@ class EmaNews:
         self.redis: aioredis.Redis = None
         self.scheduler: AsyncIOScheduler = None
         self.bot: Bot = None
+        self.raven: raven.Client = None
         self.loop = loop if loop is not None else asyncio.get_event_loop()
         self.no_notifications: bool = no_notifications
 
@@ -185,6 +194,31 @@ class EmaNews:
         self.bot = Bot(api_token=self.telegram_token)
         from bot import start
 
+    def initialize_raven(self):
+        """
+        Initializza il client raven
+
+        :return:
+        """
+        if not self.is_raven_enabled:
+            logging.getLogger("raven_client").warning("Raven is disabled")
+            return
+
+        try:
+            release = "{}@{}".format(self.VERSION, raven.fetch_git_sha(os.path.dirname(os.pardir))[:10])
+        except InvalidGitRepository as e:
+            # If git is not available, use only server's version
+            release = self.VERSION
+            logging.getLogger("raven_client").warning(e)
+            logging.getLogger("raven_client").warning("Using '{}' as raven release".format(release))
+
+        self.raven = raven.Client(
+            self.sentry_dsn,
+            transport=partial(QueuedAioHttpTransport, workers=self.raven_workers, qsize=self.raven_queue_size),
+            release=release
+        )
+        logging.getLogger("raven_client").info("Raven client initialized successfully")
+
     def initialize(self):
         """
         Inizializza EmaNews
@@ -200,6 +234,9 @@ class EmaNews:
         loop = asyncio.get_event_loop()
 
         self.logger.info("Initializing fitoemanews backend v{}".format(self.VERSION))
+
+        # Inizializza raven
+        self.initialize_raven()
 
         # Registra route aiohttp
         self.initialize_web_app()
@@ -268,3 +305,7 @@ class EmaNews:
     @property
     def is_bot_enabled(self) -> bool:   # pragma: nocover
         return self.telegram_token is not None
+
+    @property
+    def is_raven_enabled(self) -> bool:   # pragma: nocover
+        return self.raven is not None or bool(self.sentry_dsn)

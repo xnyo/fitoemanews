@@ -15,7 +15,7 @@ import time
 
 from lxml import html
 
-from utils import notificator, ema_data
+from utils import notificator, ema_data, raven
 from utils.ema import EmaDocument
 
 emanews = EmaNews()
@@ -287,6 +287,7 @@ async def scrape_documents():
 @emanews.scheduler.scheduled_job(
     IntervalTrigger(minutes=10)
 )
+@raven.capture
 async def scrape_everything():
     """
     Effettua lo scraping delle erbe e dei documenti

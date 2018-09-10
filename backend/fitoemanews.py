@@ -37,7 +37,10 @@ def main(test_mode=False):  # pragma: nocover
             key=c["MAILGUN_KEY"],
             default_from=c["MAILGUN_DEFAULT_SENDER"]
         ) if c["MAILGUN_KEY"] is not None else DummyMailgunClient(),
-        no_notifications=scrape_mode
+        no_notifications=scrape_mode,
+        sentry_dsn=c["SENTRY_DSN"],
+        raven_queue_size=c["RAVEN_QUEUE_SIZE"],
+        raven_workers=c["RAVEN_WORKERS"]
     )
     if scrape_mode:
         EmaNews().logger.info("Running in scraper-only mode")

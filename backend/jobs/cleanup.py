@@ -3,6 +3,7 @@ import logging
 from apscheduler.triggers.interval import IntervalTrigger
 
 from singletons.emanews import EmaNews
+from utils import raven
 
 emanews = EmaNews()
 logger = logging.getLogger("cleanup")
@@ -11,6 +12,7 @@ logger = logging.getLogger("cleanup")
 @emanews.scheduler.scheduled_job(
     IntervalTrigger(minutes=2)
 )
+@raven.capture
 async def clean_expired_password_reset_tokens():
     logging.info("Cleaning expired password reset tokens")
     async with EmaNews().db.acquire() as conn:
@@ -22,6 +24,7 @@ async def clean_expired_password_reset_tokens():
 @emanews.scheduler.scheduled_job(
     IntervalTrigger(minutes=2)
 )
+@raven.capture
 async def clean_expired_telegram_link_tokens():
     logging.info("Cleaning expired telegram link tokens")
     async with EmaNews().db.acquire() as conn:

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import traceback
 from typing import Callable, Union
 
@@ -13,6 +14,7 @@ from api.schema import StrippedString
 from constants.privileges import Privileges
 from exceptions import api
 from singletons.emanews import EmaNews
+from utils import raven
 
 
 def readable_exception(exc: Exception, default: str) -> str:
@@ -114,7 +116,9 @@ def errors(f: Callable) -> Callable:
             else:
                 msg = "Internal server error."
             resp = json_error_response(500, msg)
-            # TODO: Sentry
+
+            # Report a sentry (se abilitato)
+            raven.on_exception()
         finally:
             # Ritorna la risposta al client
             return resp
