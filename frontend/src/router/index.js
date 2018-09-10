@@ -108,7 +108,8 @@ router.beforeEach((to, from, next) => {
 router.afterEach((to, from) => {
   Store.commit('setHeader', {
     title: to.meta.title,
-    subtitle: to.meta.subtitle
+    subtitle: to.meta.subtitle,
+    colour: to.meta.colour
   })
   document.title = `EmaNews - ${to.meta.title}`
 })
