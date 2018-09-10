@@ -8,6 +8,7 @@
         </b-message>
         <div class="block" v-else>
           Qui hai la possibilità di creare nuove API Key per utilizzare i dati resi disponibili da EmaNews fuori da questo sito.
+          Puoi consultare la documentazione dell'API a <a href="/swagger/" target="_blank">questo link</a>.
           Se non sei uno sviluppatore, ignora questa pagina.
         </div>
         <h6 class="title is-6 text-centered" v-if="apiKeys.length === 0">Non hai nessuna api key</h6>
