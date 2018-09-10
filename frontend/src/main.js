@@ -6,11 +6,20 @@ import router from '@/router'
 import Buefy from 'buefy'
 import 'buefy/lib/buefy.css'
 import VueResource from 'vue-resource'
+import VueRaven from 'vue-raven'
 
 import store from '@/store'
+import config from '@/config'
 import ApiMixin from '@/mixins/api'
 
 Vue.config.productionTip = false
+if (config.hasOwnProperty('sentryDSN') && config.sentryDSN !== '') {
+  Vue.use(VueRaven, {
+    dsn: config.sentryDSN
+  })
+} else {
+  console.warn('Raven client is disabled')
+}
 Vue.use(Buefy, {
   defaultIconPack: 'fas'
 })
