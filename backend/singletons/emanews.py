@@ -205,7 +205,7 @@ class EmaNews:
             return
 
         try:
-            release = "{}@{}".format(self.VERSION, raven.fetch_git_sha(os.path.dirname(os.pardir))[:10])
+            release = "{}@{}".format(self.VERSION, raven.fetch_git_sha(os.getcwd() + "/../")[:10])
         except InvalidGitRepository as e:
             # If git is not available, use only server's version
             release = self.VERSION
