@@ -36,6 +36,10 @@ paths:
               message:
                 type: string
                 default: ok
+              version:
+                type: string
+                default: 1.0.1
+                description: Versione dell'API
         '405':
           description: Metodo non valido
   '/activate/{token}':
@@ -603,6 +607,7 @@ paths:
         - API Key: []
         - API Key Header: []
         - Cookie di sessione: []
+      summary: Avvia la procedura per il collegamento con account Telegram
       description: >-
         Ritorna il link per collegare l'account EmaNews con l'account Telegram
         (deep link) per collegare l'account EmaNews con un account Telegram.  

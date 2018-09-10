@@ -20,6 +20,7 @@ class EmaNews:
     Singleton EmaNews
     """
     logger = logging.getLogger("emanews")
+    VERSION = "1.0.1"
 
     def __init__(
         self, *,
