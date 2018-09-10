@@ -199,7 +199,7 @@ class EmaNews:
 
         loop = asyncio.get_event_loop()
 
-        self.logger.info("Initializing fitoemanews")
+        self.logger.info("Initializing fitoemanews backend v{}".format(self.VERSION))
 
         # Registra route aiohttp
         self.initialize_web_app()
